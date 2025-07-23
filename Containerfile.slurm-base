@@ -1,0 +1,35 @@
+FROM rockylinux:9
+
+# Install build dependencies
+RUN dnf makecache
+RUN dnf install -y dnf-plugins-core 
+RUN dnf config-manager --set-enabled devel
+RUN dnf groupinstall -y "Development Tools"
+RUN dnf install --allowerasing -y \
+    munge-devel \
+    readline-devel \
+    openssl-devel \
+    pam-devel \
+    rpm-build \
+    wget \
+    git \
+    curl \
+    python3 \
+    epel-release && \
+    dnf clean all
+
+# Install munge for authentication
+RUN dnf install -y munge munge-libs && dnf clean all
+
+# Set SLURM version
+ENV SLURM_VERSION=23.11.6
+
+WORKDIR /build
+
+# Download and build SLURM
+RUN wget https://download.schedmd.com/slurm/slurm-${SLURM_VERSION}.tar.bz2 && \
+    tar -xvjf slurm-${SLURM_VERSION}.tar.bz2 && \
+    cd slurm-${SLURM_VERSION} && \
+    ./configure --prefix=/opt/slurm && \
+    make -j$(nproc) && \
+    make install

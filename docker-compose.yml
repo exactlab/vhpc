@@ -1,0 +1,13 @@
+services:
+  slurm-head:
+    image: slurm-headnode:latest
+    container_name: slurm-headnode
+    ports:
+      - "2222:22"
+    volumes:
+      - slurm_data:/opt/slurm/etc
+    restart: unless-stopped
+
+volumes:
+  slurm_data:
+

@@ -1,0 +1,94 @@
+FROM rockylinux:9
+
+# Runtime dependencies
+RUN dnf install -y \
+    munge \
+    munge-libs \
+    openssh-server \
+    passwd \
+    python3 \
+    which && \
+    dnf clean all
+
+# Copy built SLURM from builder
+COPY --from=slurm-base:latest /opt/slurm /opt/slurm
+
+# Set environment variables
+ENV PATH=/opt/slurm/bin:/opt/slurm/sbin:$PATH
+ENV SLURM_CONF=/opt/slurm/etc/slurm.conf
+
+# Create munge key
+RUN mkdir -p /etc/munge && \
+    chown munge:munge /etc/munge && \
+    chmod 0700 /etc/munge && \
+    dd if=/dev/urandom bs=1 count=1024 > /etc/munge/munge.key && \
+    chown munge:munge /etc/munge/munge.key && \
+    chmod 0400 /etc/munge/munge.key
+RUN mkdir -p /var/run/munge/ && \
+    chown munge:munge /var/run/munge && \
+    chmod 0755 /var/run/munge
+RUN mkdir -p /var/log/munge && \
+    chown -R munge:munge /var/log/munge && \
+    chmod -R 0700 /var/log/munge
+
+# Create slurm user and directories
+RUN useradd -m slurm && \
+    mkdir -p /var/spool/slurmd /var/log/slurm /opt/slurm/etc && \
+    chown slurm:slurm /var/spool/slurmd /var/log/slurm
+
+# Add unprivileged user
+RUN useradd -m user && echo "user:password" | chpasswd
+
+# Enable SSH root login and start SSHD
+RUN ssh-keygen -A 
+RUN mkdir -p /var/run/sshd && \
+    echo 'root:rootpass' | chpasswd && \
+    sed -i 's/^#PermitRootLogin.*/PermitRootLogin yes/' /etc/ssh/sshd_config && \
+    sed -i 's/^#PasswordAuthentication.*/PasswordAuthentication yes/' /etc/ssh/sshd_config
+
+# Add a very basic slurm.conf (you will want to mount your real one)
+RUN echo "ClusterName=docker_cluster" > /opt/slurm/etc/slurm.conf && \
+    echo "SlurmctldHost=localhost" >> /opt/slurm/etc/slurm.conf && \
+    echo "SlurmUser=slurm" >> /opt/slurm/etc/slurm.conf && \
+    echo "SlurmctldPort=6817" >> /opt/slurm/etc/slurm.conf && \
+    echo "SlurmdPort=6818" >> /opt/slurm/etc/slurm.conf && \
+    echo "AuthType=auth/munge" >> /opt/slurm/etc/slurm.conf && \
+    echo "StateSaveLocation=/var/spool/slurmd" >> /opt/slurm/etc/slurm.conf && \
+    echo "SlurmdSpoolDir=/var/spool/slurmd" >> /opt/slurm/etc/slurm.conf && \
+    echo "SwitchType=switch/none" >> /opt/slurm/etc/slurm.conf && \
+    echo "MpiDefault=none" >> /opt/slurm/etc/slurm.conf && \
+    echo "ProctrackType=proctrack/pgid" >> /opt/slurm/etc/slurm.conf && \
+    echo "ReturnToService=1" >> /opt/slurm/etc/slurm.conf && \
+    echo "NodeName=localhost CPUs=1 State=UNKNOWN" >> /opt/slurm/etc/slurm.conf && \
+    echo "PartitionName=debug Nodes=ALL Default=YES MaxTime=INFINITE State=UP" >> /opt/slurm/etc/slurm.conf
+
+# Expose SSH
+EXPOSE 22
+
+RUN cat << 'EOF' > /start.sh
+#!/bin/bash
+set -e
+
+echo "Fixing permissions..."
+chown -R munge:munge /var/log/munge /var/run/munge /etc/munge
+chmod 0700 /var/log/munge
+chmod 0755 /var/run/munge
+chmod 0700 /etc/munge
+chmod 0400 /etc/munge/munge.key
+
+echo "Starting sshd..."
+/usr/sbin/sshd
+
+echo "Starting munged..."
+su -s /bin/bash munge -c "/usr/sbin/munged"
+
+echo "Testing munge..."
+munge -n | unmunge
+
+echo "Starting slurmctld..."
+exec slurmctld -D
+EOF
+
+RUN chmod +x /start.sh
+
+CMD ["/start.sh"]
