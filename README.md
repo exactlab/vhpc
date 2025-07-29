@@ -14,34 +14,16 @@ multi-container environment with one head node and configurable worker nodes.
 ## Files Structure
 
 ```
-.
+vhpc/
 ├── Containerfile.slurm-base      # Base image with SLURM build
 ├── Containerfile.slurm-headnode  # Head node configuration
 ├── Containerfile.slurm-worker    # Worker node configuration
 ├── docker-compose.yml            # Multi-container orchestration
 ├── slurm.conf                    # SLURM cluster configuration
-├── makefile                      # Build automation
-└── obsolete/                     # Legacy files (ignore)
+└── makefile                      # Build automation
 ```
 
 ## Current Issues
-
-### Critical Issues
-
-1. **SLURM Configuration Path Inconsistency**:
-   - Head node expects: `/opt/slurm/etc/slurm.conf`
-   - Worker node mounts to: `/opt/slurm/etc/slurm.conf`
-   - Docker-compose mounts inconsistently
-
-2. **Worker Node Not Starting slurmd**:
-   - Worker containers end with `tail -f /dev/null`
-   - slurmd daemon startup is commented out
-   - File: `Containerfile.slurm-worker:63-65`
-
-3. **Resource Mismatch in slurm.conf**:
-   - Configuration specifies 14 cores per socket
-   - Docker containers typically allocated 1 CPU
-   - Line: `slurm.conf:17`
 
 ### Minor Issues
 

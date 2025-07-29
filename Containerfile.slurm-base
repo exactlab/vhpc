@@ -27,9 +27,9 @@ ENV SLURM_VERSION=23.11.6
 WORKDIR /build
 
 # Download and build SLURM
-RUN wget https://download.schedmd.com/slurm/slurm-${SLURM_VERSION}.tar.bz2 && \
-    tar -xvjf slurm-${SLURM_VERSION}.tar.bz2 && \
+RUN wget https://download.schedmd.com/slurm/slurm-${SLURM_VERSION}.tar.bz2
+RUN tar -xvjf slurm-${SLURM_VERSION}.tar.bz2 && \
     cd slurm-${SLURM_VERSION} && \
-    ./configure --prefix=/opt/slurm && \
+    ./configure --prefix=/opt/slurm --enable-cgroup && \
     make -j$(nproc) && \
     make install

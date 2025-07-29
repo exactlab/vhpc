@@ -61,8 +61,7 @@ echo "Testing munge..."
 munge -n | unmunge
 
 # echo "Starting slurmd..."
-# exec slurmd -D -f ${SLURM_CONF}
-tail -f /dev/null
+exec slurmd -D -f ${SLURM_CONF}
 EOF
 
 ENV SLURM_CONF=/opt/slurm/etc/slurm.conf

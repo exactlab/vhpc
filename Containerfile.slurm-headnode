@@ -15,6 +15,7 @@ COPY --from=slurm-base:latest /opt/slurm /opt/slurm
 
 # Set environment variables
 ENV PATH=/opt/slurm/bin:/opt/slurm/sbin:$PATH
+RUN ln -s /opt/slurm/bin/* /bin/
 ENV SLURM_CONF=/opt/slurm/etc/slurm.conf
 ENV SLURM_PLUGIN_DIR=/opt/slurm/lib/slurm
 
@@ -62,6 +63,8 @@ RUN echo "ClusterName=docker_cluster" > /opt/slurm/etc/slurm.conf && \
     echo "ReturnToService=1" >> /opt/slurm/etc/slurm.conf && \
     echo "NodeName=localhost CPUs=1 State=UNKNOWN" >> /opt/slurm/etc/slurm.conf && \
     echo "PartitionName=debug Nodes=ALL Default=YES MaxTime=INFINITE State=UP" >> /opt/slurm/etc/slurm.conf
+
+RUN chown -R slurm:slurm /opt/slurm
 
 # Expose SSH
 EXPOSE 22
