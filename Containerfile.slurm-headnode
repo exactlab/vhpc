@@ -16,6 +16,7 @@ COPY --from=slurm-base:latest /opt/slurm /opt/slurm
 # Set environment variables
 ENV PATH=/opt/slurm/bin:/opt/slurm/sbin:$PATH
 ENV SLURM_CONF=/opt/slurm/etc/slurm.conf
+ENV SLURM_PLUGIN_DIR=/opt/slurm/lib/slurm
 
 # Create munge key
 RUN mkdir -p /etc/munge && \

@@ -1,0 +1,72 @@
+FROM rockylinux:9
+
+# Runtime dependencies
+RUN dnf install -y \
+    munge \
+    munge-libs \
+    openssh-server \
+    passwd \
+    python3 \
+    which && \
+    dnf clean all
+
+# Copy built SLURM from builder
+COPY --from=slurm-base:latest /opt/slurm /opt/slurm
+
+# Set environment variables
+ENV PATH=/opt/slurm/bin:/opt/slurm/sbin:$PATH
+ENV SLURM_CONF=/etc/slurm.conf
+
+# Create munge directories (key will be mounted from headnode)
+RUN mkdir -p /etc/munge /var/run/munge /var/log/munge && \
+    chown -R munge:munge /etc/munge /var/run/munge /var/log/munge && \
+    chmod 0700 /etc/munge /var/log/munge && \
+    chmod 0755 /var/run/munge
+
+# Create slurm user and directories
+RUN useradd -m slurm && \
+    mkdir -p /var/spool/slurmd /var/log/slurm && \
+    chown slurm:slurm /var/spool/slurmd /var/log/slurm
+
+# Add unprivileged user
+RUN useradd -m user && echo "user:password" | chpasswd
+
+# Enable SSH
+RUN ssh-keygen -A && \
+    mkdir -p /var/run/sshd && \
+    echo 'root:rootpass' | chpasswd && \
+    sed -i 's/^#PermitRootLogin.*/PermitRootLogin yes/' /etc/ssh/sshd_config && \
+    sed -i 's/^#PasswordAuthentication.*/PasswordAuthentication yes/' /etc/ssh/sshd_config
+
+# Expose SSH
+EXPOSE 22
+
+RUN cat << 'EOF' > /start.sh
+#!/bin/bash
+set -e
+
+# echo "Fixing permissions..."
+# chown -R munge:munge /var/log/munge /var/run/munge /etc/munge
+# chmod 0700 /var/log/munge /etc/munge
+# chmod 0755 /var/run/munge
+# chmod 0400 /etc/munge/munge.key
+
+echo "Starting sshd..."
+/usr/sbin/sshd
+
+echo "Starting munged..."
+su -s /bin/bash munge -c "/usr/sbin/munged"
+
+echo "Testing munge..."
+munge -n | unmunge
+
+# echo "Starting slurmd..."
+# exec slurmd -D -f ${SLURM_CONF}
+tail -f /dev/null
+EOF
+
+ENV SLURM_CONF=/opt/slurm/etc/slurm.conf
+
+RUN chmod +x /start.sh
+
+CMD ["/start.sh"]
