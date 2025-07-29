@@ -1,5 +1,4 @@
-#!/usr/bin/env bash
-
+.PHONY: all default slurm-base slurm-headnode slurm-worker clean
 
 slurm-base:
 	docker build -f Containerfile.slurm-base -t slurm-base:latest .
@@ -13,3 +12,7 @@ slurm-worker: slurm-base
 all: slurm-headnode slurm-worker
 
 default: all
+
+clean:
+	docker rmi -f \
+		slurm-base:latest slurm-headnode:latest slurm-worker:latest || true

@@ -20,17 +20,9 @@ vhpc/
 ├── Containerfile.slurm-worker    # Worker node configuration
 ├── docker-compose.yml            # Multi-container orchestration
 ├── slurm.conf                    # SLURM cluster configuration
+├── cgroup.conf                   # Cgroup configuration for resource management
 └── makefile                      # Build automation
 ```
-
-## Current Issues
-
-### Minor Issues
-
-4. **Makefile Syntax**:
-   - Incorrect shebang at top of makefile
-   - Missing `.PHONY` declarations
-   - File: `makefile:1`
 
 ## Prerequisites
 
@@ -58,10 +50,6 @@ docker build -f Containerfile.slurm-worker -t slurm-worker:latest .
 ```
 
 ## Usage
-
-**Note**: The cluster currently does not work due to the issues listed above.
-
-Once issues are resolved:
 ```bash
 docker-compose up -d
 ```
@@ -70,8 +58,7 @@ docker-compose up -d
 - **Head Node SSH**: `ssh root@localhost -p 2222` (password: `rootpass`)
 - **Worker1 SSH**: `ssh root@localhost -p 2223` (password: `rootpass`)
 
-### SLURM Commands
-After fixing the issues, you can:
+### Example SLURM Commands
 ```bash
 # Check cluster status
 sinfo
@@ -107,15 +94,6 @@ NodeName=slurm-worker[1-3] CPUs=1 Sockets=1 CoresPerSocket=1 ThreadsPerCore=1 St
 - SSH root login is enabled for testing
 - Consider using SSH keys in production environments
 - Munge keys are shared via Docker volumes
-
-## Required Fixes
-
-To make this cluster functional, the following fixes are needed:
-
-1. Fix SLURM configuration path consistency across all containers
-2. Enable slurmd daemon startup in worker nodes
-3. Correct CPU allocation in slurm.conf to match container resources
-4. Fix makefile syntax issues
 
 ## Technical Details
 
