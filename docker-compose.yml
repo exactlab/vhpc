@@ -10,6 +10,8 @@ services:
       - munge-key:/etc/munge
       - ./slurm.conf:/etc/slurm/slurm.conf:ro
       - /sys/fs/cgroup:/sys/fs/cgroup:ro
+      - shared-storage:/shared
+      - user-sync:/user-sync
     networks:
       - slurm-net
 
@@ -25,29 +27,36 @@ services:
       - ./slurm.conf:/etc/slurm/slurm.conf:ro
       - ./cgroup.conf:/etc/slurm/cgroup.conf:ro
       - /sys/fs/cgroup:/sys/fs/cgroup:ro
+      - shared-storage:/shared
+      - user-sync:/user-sync:ro
     depends_on:
       - slurm-headnode
     networks:
       - slurm-net
 
-#   slurm-worker2:
-#     image: slurm-worker:latest
-#     container_name: slurm-worker2
-#     hostname: slurm-worker2
-#     privileged: true
-#     ports:
-#       - "2224:22"
-#     volumes:
-#       - munge-key:/etc/munge:ro
-#       - ./slurm.conf:/etc/slurm/slurm.conf:ro
-#       - /sys/fs/cgroup:/sys/fs/cgroup:ro
-#     depends_on:
-#       - slurm-headnode
-#     networks:
-#       - slurm-net
+  slurm-worker2:
+    image: slurm-worker:latest
+    container_name: slurm-worker2
+    hostname: slurm-worker2
+    privileged: true
+    ports:
+      - "2224:22"
+    volumes:
+      - munge-key:/etc/munge:ro
+      - ./slurm.conf:/etc/slurm/slurm.conf:ro
+      - ./cgroup.conf:/etc/slurm/cgroup.conf:ro
+      - /sys/fs/cgroup:/sys/fs/cgroup:ro
+      - shared-storage:/shared
+      - user-sync:/user-sync:ro
+    depends_on:
+      - slurm-headnode
+    networks:
+      - slurm-net
 
 volumes:
   munge-key:
+  shared-storage:
+  user-sync:
 
 networks:
   slurm-net:

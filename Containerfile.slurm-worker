@@ -34,11 +34,12 @@ RUN cat << 'EOF' > /start.sh
 #!/bin/bash
 set -e
 
-# echo "Fixing permissions..."
-# chown -R munge:munge /var/log/munge /var/run/munge /etc/munge
-# chmod 0700 /var/log/munge /etc/munge
-# chmod 0755 /var/run/munge
-# chmod 0400 /etc/munge/munge.key
+echo "Synchronizing users from headnode..."
+if [ -f /user-sync/passwd ]; then
+    cp /user-sync/passwd /etc/passwd
+    cp /user-sync/group /etc/group
+    [ -f /user-sync/shadow ] && cp /user-sync/shadow /etc/shadow
+fi
 
 echo "Starting sshd..."
 /usr/sbin/sshd
@@ -49,7 +50,6 @@ su -s /bin/bash munge -c "/usr/sbin/munged"
 echo "Testing munge..."
 munge -n | unmunge
 
-# echo "Starting slurmd..."
 exec slurmd -D -f ${SLURM_CONF}
 EOF
 

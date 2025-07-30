@@ -7,7 +7,7 @@ RUN dnf makecache && \
     dnf install -y epel-release && \
     dnf clean all
 
-# Install Slurm and dependencies from packages
+# Install Slurm, MPI, and dependencies from packages
 RUN dnf install -y \
     slurm \
     slurm-slurmctld \
@@ -16,9 +16,21 @@ RUN dnf install -y \
     munge \
     munge-libs \
     python3 \
+    openmpi \
+    openmpi-devel \
+    gcc \
+    gcc-c++ \
     && dnf clean all
 
 # Create slurm user and directories with correct permissions
 RUN useradd -r -s /bin/false slurm && \
     mkdir -p /var/spool/slurm /var/log/slurm /run/slurm /var/spool/slurmd && \
     chown -R slurm:slurm /var/spool/slurm /var/log/slurm /run/slurm /var/spool/slurmd
+
+# Configure OpenMPI for container environments
+RUN echo 'export OMPI_MCA_btl_vader_single_copy_mechanism=none' >> /etc/environment && \
+    echo 'export OMPI_MCA_btl=tcp,self' >> /etc/environment && \
+    echo 'export OMPI_MCA_mtl=^ofi' >> /etc/environment
+
+# Set up shared storage with proper permissions
+RUN mkdir -p /shared && chmod 755 /shared

@@ -60,6 +60,15 @@ RUN cat << 'EOF' > /start.sh
 #!/bin/bash
 set -e
 
+echo "Syncing user information..."
+cp /etc/passwd /user-sync/passwd
+cp /etc/group /user-sync/group
+cp /etc/shadow /user-sync/shadow 2>/dev/null || true
+
+echo "Setting up shared storage permissions..."
+chown root:root /shared
+chmod 755 /shared
+
 echo "Fixing permissions..."
 chown -R munge:munge /var/log/munge /var/run/munge /etc/munge
 chmod 0700 /var/log/munge
