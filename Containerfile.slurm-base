@@ -1,35 +1,24 @@
 FROM rockylinux:9
 
-# Install build dependencies
-RUN dnf makecache
-RUN dnf install -y dnf-plugins-core 
-RUN dnf config-manager --set-enabled devel
-RUN dnf groupinstall -y "Development Tools"
-RUN dnf install --allowerasing -y \
-    munge-devel \
-    readline-devel \
-    openssl-devel \
-    pam-devel \
-    rpm-build \
-    wget \
-    git \
-    curl \
-    python3 \
-    epel-release && \
+# Install essential packages and enable repositories
+RUN dnf makecache && \
+    dnf install -y dnf-plugins-core && \
+    dnf config-manager --set-enabled crb && \
+    dnf install -y epel-release && \
     dnf clean all
 
-# Install munge for authentication
-RUN dnf install -y munge munge-libs && dnf clean all
+# Install Slurm and dependencies from packages
+RUN dnf install -y \
+    slurm \
+    slurm-slurmctld \
+    slurm-slurmd \
+    slurm-slurmdbd \
+    munge \
+    munge-libs \
+    python3 \
+    && dnf clean all
 
-# Set SLURM version
-ENV SLURM_VERSION=23.11.6
-
-WORKDIR /build
-
-# Download and build SLURM
-RUN wget https://download.schedmd.com/slurm/slurm-${SLURM_VERSION}.tar.bz2
-RUN tar -xvjf slurm-${SLURM_VERSION}.tar.bz2 && \
-    cd slurm-${SLURM_VERSION} && \
-    ./configure --prefix=/opt/slurm --enable-cgroup && \
-    make -j$(nproc) && \
-    make install
+# Create slurm user and directories with correct permissions
+RUN useradd -r -s /bin/false slurm && \
+    mkdir -p /var/spool/slurm /var/log/slurm /run/slurm /var/spool/slurmd && \
+    chown -R slurm:slurm /var/spool/slurm /var/log/slurm /run/slurm /var/spool/slurmd

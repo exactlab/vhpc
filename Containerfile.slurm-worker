@@ -1,21 +1,11 @@
-FROM rockylinux:9
+FROM slurm-base:latest
 
-# Runtime dependencies
+# Install additional runtime dependencies
 RUN dnf install -y \
-    munge \
-    munge-libs \
     openssh-server \
     passwd \
-    python3 \
     which && \
     dnf clean all
-
-# Copy built SLURM from builder
-COPY --from=slurm-base:latest /opt/slurm /opt/slurm
-
-# Set environment variables
-ENV PATH=/opt/slurm/bin:/opt/slurm/sbin:$PATH
-ENV SLURM_CONF=/etc/slurm.conf
 
 # Create munge directories (key will be mounted from headnode)
 RUN mkdir -p /etc/munge /var/run/munge /var/log/munge && \
@@ -23,10 +13,9 @@ RUN mkdir -p /etc/munge /var/run/munge /var/log/munge && \
     chmod 0700 /etc/munge /var/log/munge && \
     chmod 0755 /var/run/munge
 
-# Create slurm user and directories
-RUN useradd -m slurm && \
-    mkdir -p /var/spool/slurmd /var/log/slurm && \
-    chown slurm:slurm /var/spool/slurmd /var/log/slurm
+# Create additional directories (slurm user already exists from base image)
+RUN mkdir -p /var/spool/slurmd && \
+    chown slurm:slurm /var/spool/slurmd
 
 # Add unprivileged user
 RUN useradd -m user && echo "user:password" | chpasswd
@@ -64,7 +53,7 @@ munge -n | unmunge
 exec slurmd -D -f ${SLURM_CONF}
 EOF
 
-ENV SLURM_CONF=/opt/slurm/etc/slurm.conf
+ENV SLURM_CONF=/etc/slurm/slurm.conf
 
 RUN chmod +x /start.sh
 

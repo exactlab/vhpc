@@ -1,23 +1,11 @@
-FROM rockylinux:9
+FROM slurm-base:latest
 
-# Runtime dependencies
+# Install additional runtime dependencies
 RUN dnf install -y \
-    munge \
-    munge-libs \
     openssh-server \
     passwd \
-    python3 \
     which && \
     dnf clean all
-
-# Copy built SLURM from builder
-COPY --from=slurm-base:latest /opt/slurm /opt/slurm
-
-# Set environment variables
-ENV PATH=/opt/slurm/bin:/opt/slurm/sbin:$PATH
-RUN ln -s /opt/slurm/bin/* /bin/
-ENV SLURM_CONF=/opt/slurm/etc/slurm.conf
-ENV SLURM_PLUGIN_DIR=/opt/slurm/lib/slurm
 
 # Create munge key
 RUN mkdir -p /etc/munge && \
@@ -33,10 +21,9 @@ RUN mkdir -p /var/log/munge && \
     chown -R munge:munge /var/log/munge && \
     chmod -R 0700 /var/log/munge
 
-# Create slurm user and directories
-RUN useradd -m slurm && \
-    mkdir -p /var/spool/slurmd /var/log/slurm /opt/slurm/etc && \
-    chown slurm:slurm /var/spool/slurmd /var/log/slurm
+# Create additional directories (slurm user already exists from base image)
+RUN mkdir -p /var/spool/slurmd && \
+    chown slurm:slurm /var/spool/slurmd
 
 # Add unprivileged user
 RUN useradd -m user && echo "user:password" | chpasswd
@@ -49,22 +36,22 @@ RUN mkdir -p /var/run/sshd && \
     sed -i 's/^#PasswordAuthentication.*/PasswordAuthentication yes/' /etc/ssh/sshd_config
 
 # Add a very basic slurm.conf (you will want to mount your real one)
-RUN echo "ClusterName=docker_cluster" > /opt/slurm/etc/slurm.conf && \
-    echo "SlurmctldHost=localhost" >> /opt/slurm/etc/slurm.conf && \
-    echo "SlurmUser=slurm" >> /opt/slurm/etc/slurm.conf && \
-    echo "SlurmctldPort=6817" >> /opt/slurm/etc/slurm.conf && \
-    echo "SlurmdPort=6818" >> /opt/slurm/etc/slurm.conf && \
-    echo "AuthType=auth/munge" >> /opt/slurm/etc/slurm.conf && \
-    echo "StateSaveLocation=/var/spool/slurmd" >> /opt/slurm/etc/slurm.conf && \
-    echo "SlurmdSpoolDir=/var/spool/slurmd" >> /opt/slurm/etc/slurm.conf && \
-    echo "SwitchType=switch/none" >> /opt/slurm/etc/slurm.conf && \
-    echo "MpiDefault=none" >> /opt/slurm/etc/slurm.conf && \
-    echo "ProctrackType=proctrack/pgid" >> /opt/slurm/etc/slurm.conf && \
-    echo "ReturnToService=1" >> /opt/slurm/etc/slurm.conf && \
-    echo "NodeName=localhost CPUs=1 State=UNKNOWN" >> /opt/slurm/etc/slurm.conf && \
-    echo "PartitionName=debug Nodes=ALL Default=YES MaxTime=INFINITE State=UP" >> /opt/slurm/etc/slurm.conf
+RUN echo "ClusterName=docker_cluster" > /etc/slurm/slurm.conf && \
+    echo "SlurmctldHost=slurm-headnode" >> /etc/slurm/slurm.conf && \
+    echo "SlurmUser=slurm" >> /etc/slurm/slurm.conf && \
+    echo "SlurmctldPort=6817" >> /etc/slurm/slurm.conf && \
+    echo "SlurmdPort=6818" >> /etc/slurm/slurm.conf && \
+    echo "AuthType=auth/munge" >> /etc/slurm/slurm.conf && \
+    echo "StateSaveLocation=/var/spool/slurm" >> /etc/slurm/slurm.conf && \
+    echo "SlurmdSpoolDir=/var/spool/slurmd" >> /etc/slurm/slurm.conf && \
+    echo "SwitchType=switch/none" >> /etc/slurm/slurm.conf && \
+    echo "MpiDefault=none" >> /etc/slurm/slurm.conf && \
+    echo "ProctrackType=proctrack/pgid" >> /etc/slurm/slurm.conf && \
+    echo "ReturnToService=1" >> /etc/slurm/slurm.conf && \
+    echo "NodeName=slurm-worker1 CPUs=1 State=UNKNOWN" >> /etc/slurm/slurm.conf && \
+    echo "PartitionName=debug Nodes=ALL Default=YES MaxTime=INFINITE State=UP" >> /etc/slurm/slurm.conf
 
-RUN chown -R slurm:slurm /opt/slurm
+RUN chown -R slurm:slurm /etc/slurm /var/spool/slurm /var/log/slurm
 
 # Expose SSH
 EXPOSE 22

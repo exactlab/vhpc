@@ -8,7 +8,7 @@ services:
       - "2222:22"
     volumes:
       - munge-key:/etc/munge
-      - ./slurm.conf:/opt/slurm/etc/slurm.conf:ro
+      - ./slurm.conf:/etc/slurm/slurm.conf:ro
       - /sys/fs/cgroup:/sys/fs/cgroup:ro
     networks:
       - slurm-net
@@ -22,8 +22,8 @@ services:
       - "2223:22"
     volumes:
       - munge-key:/etc/munge:ro
-      - ./slurm.conf:/opt/slurm/etc/slurm.conf:ro
-      - ./cgroup.conf:/opt/slurm/etc/cgroup.conf:ro
+      - ./slurm.conf:/etc/slurm/slurm.conf:ro
+      - ./cgroup.conf:/etc/slurm/cgroup.conf:ro
       - /sys/fs/cgroup:/sys/fs/cgroup:ro
     depends_on:
       - slurm-headnode
@@ -39,7 +39,7 @@ services:
 #       - "2224:22"
 #     volumes:
 #       - munge-key:/etc/munge:ro
-#       - ./slurm.conf:/etc/slurm.conf:ro
+#       - ./slurm.conf:/etc/slurm/slurm.conf:ro
 #       - /sys/fs/cgroup:/sys/fs/cgroup:ro
 #     depends_on:
 #       - slurm-headnode
