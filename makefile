@@ -1,18 +1,18 @@
-.PHONY: all default slurm-base slurm-headnode slurm-worker clean
+.PHONY: all default vhpc-base vhpc-headnode vhpc-worker clean
 
-slurm-base:
-	docker build -f Containerfile.slurm-base -t slurm-base:latest .
+vhpc-base:
+	docker build -f Containerfile.slurm-base -t vhpc-base:latest .
 
-slurm-headnode: slurm-base
-	docker build -f Containerfile.slurm-headnode -t slurm-headnode:latest .
+vhpc-headnode: vhpc-base
+	docker build -f Containerfile.slurm-headnode -t vhpc-headnode:latest --build-arg BASE_IMAGE=vhpc-base:latest .
 
-slurm-worker: slurm-base
-	docker build -f Containerfile.slurm-worker -t slurm-worker:latest .
+vhpc-worker: vhpc-base
+	docker build -f Containerfile.slurm-worker -t vhpc-worker:latest --build-arg BASE_IMAGE=vhpc-base:latest .
 
-all: slurm-headnode slurm-worker
+all: vhpc-headnode vhpc-worker
 
 default: all
 
 clean:
 	docker rmi -f \
-		slurm-base:latest slurm-headnode:latest slurm-worker:latest || true
+		vhpc-base:latest vhpc-headnode:latest vhpc-worker:latest || true
