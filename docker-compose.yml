@@ -5,15 +5,16 @@ services:
     hostname: slurm-db
     environment:
       MYSQL_ROOT_PASSWORD: rootpass
-      MYSQL_DATABASE: slurm_acct_db
-      MYSQL_USER: slurm
+      MYSQL_DATABASE: slurm_acct_db      # Database for SLURM accounting
+      MYSQL_USER: slurm                  # User for slurmdbd connections
       MYSQL_PASSWORD: slurmpass
     volumes:
-      - slurm-db-data:/var/lib/mysql
+      - slurm-db-data:/var/lib/mysql     # Persistent storage for accounting data
     networks:
       - slurm-net
+    # Optimize MariaDB for container environments with limited memory
     command: --innodb-buffer-pool-size=64M --innodb-log-file-size=32M
-    restart: unless-stopped
+    restart: unless-stopped              # Auto-restart for high availability
 
   slurm-headnode:
     image: slurm-headnode:latest
@@ -21,15 +22,15 @@ services:
     hostname: slurm-headnode
     privileged: true
     depends_on:
-      - slurm-db
+      - slurm-db                         # Ensure database starts before headnode
     ports:
       - "2222:22"
     volumes:
-      - munge-key:/etc/munge
-      - ./slurm-config:/etc/slurm
-      - /sys/fs/cgroup:/sys/fs/cgroup:ro
-      - shared-storage:/shared
-      - user-sync:/user-sync
+      - munge-key:/etc/munge             # Shared Munge authentication key
+      - ./slurm-config:/etc/slurm        # Shared SLURM configuration directory
+      - /sys/fs/cgroup:/sys/fs/cgroup:ro # Host cgroups for resource management
+      - shared-storage:/shared           # Shared storage for job data and MPI binaries
+      - user-sync:/user-sync             # User account synchronization
     networks:
       - slurm-net
 
