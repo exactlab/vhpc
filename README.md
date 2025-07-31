@@ -67,17 +67,28 @@ make all
 ### Option 2: Manual Build
 ```bash
 # Build base image first
-docker build -f Containerfile.slurm-base -t slurm-base:latest .
+docker build -f Containerfile.slurm-base -t vhpc-base:latest .
 
 # Build head node
-docker build -f Containerfile.slurm-headnode -t slurm-headnode:latest .
+docker build -f Containerfile.slurm-headnode -t vhpc-headnode:latest --build-arg BASE_IMAGE=vhpc-base:latest .
 
 # Build worker node
-docker build -f Containerfile.slurm-worker -t slurm-worker:latest .
+docker build -f Containerfile.slurm-worker -t vhpc-worker:latest --build-arg BASE_IMAGE=vhpc-base:latest .
 ```
 
 ## Usage
+
+### Using Pre-built Images (Recommended)
 ```bash
+# Pull latest images from GitHub Container Registry
+docker compose pull
+docker compose up -d
+```
+
+### Using Local Build
+```bash
+# Build images locally
+make all
 docker compose up -d
 ```
 
