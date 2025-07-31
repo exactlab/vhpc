@@ -1,14 +1,32 @@
 services:
+  slurm-db:
+    image: mariadb:10.9
+    container_name: slurm-db
+    hostname: slurm-db
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpass
+      MYSQL_DATABASE: slurm_acct_db
+      MYSQL_USER: slurm
+      MYSQL_PASSWORD: slurmpass
+    volumes:
+      - slurm-db-data:/var/lib/mysql
+    networks:
+      - slurm-net
+    command: --innodb-buffer-pool-size=64M --innodb-log-file-size=32M
+    restart: unless-stopped
+
   slurm-headnode:
     image: slurm-headnode:latest
     container_name: slurm-headnode0
     hostname: slurm-headnode
     privileged: true
+    depends_on:
+      - slurm-db
     ports:
       - "2222:22"
     volumes:
       - munge-key:/etc/munge
-      - ./slurm.conf:/etc/slurm/slurm.conf:ro
+      - ./slurm-config:/etc/slurm
       - /sys/fs/cgroup:/sys/fs/cgroup:ro
       - shared-storage:/shared
       - user-sync:/user-sync
@@ -24,8 +42,7 @@ services:
       - "2223:22"
     volumes:
       - munge-key:/etc/munge:ro
-      - ./slurm.conf:/etc/slurm/slurm.conf:ro
-      - ./cgroup.conf:/etc/slurm/cgroup.conf:ro
+      - ./slurm-config:/etc/slurm
       - /sys/fs/cgroup:/sys/fs/cgroup:ro
       - shared-storage:/shared
       - user-sync:/user-sync:ro
@@ -43,8 +60,7 @@ services:
       - "2224:22"
     volumes:
       - munge-key:/etc/munge:ro
-      - ./slurm.conf:/etc/slurm/slurm.conf:ro
-      - ./cgroup.conf:/etc/slurm/cgroup.conf:ro
+      - ./slurm-config:/etc/slurm
       - /sys/fs/cgroup:/sys/fs/cgroup:ro
       - shared-storage:/shared
       - user-sync:/user-sync:ro
@@ -57,6 +73,8 @@ volumes:
   munge-key:
   shared-storage:
   user-sync:
+  slurm-db-data:
+  slurm-config:
 
 networks:
   slurm-net:

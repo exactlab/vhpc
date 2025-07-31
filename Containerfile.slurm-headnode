@@ -35,60 +35,15 @@ RUN mkdir -p /var/run/sshd && \
     sed -i 's/^#PermitRootLogin.*/PermitRootLogin yes/' /etc/ssh/sshd_config && \
     sed -i 's/^#PasswordAuthentication.*/PasswordAuthentication yes/' /etc/ssh/sshd_config
 
-# Add a very basic slurm.conf (you will want to mount your real one)
-RUN echo "ClusterName=docker_cluster" > /etc/slurm/slurm.conf && \
-    echo "SlurmctldHost=slurm-headnode" >> /etc/slurm/slurm.conf && \
-    echo "SlurmUser=slurm" >> /etc/slurm/slurm.conf && \
-    echo "SlurmctldPort=6817" >> /etc/slurm/slurm.conf && \
-    echo "SlurmdPort=6818" >> /etc/slurm/slurm.conf && \
-    echo "AuthType=auth/munge" >> /etc/slurm/slurm.conf && \
-    echo "StateSaveLocation=/var/spool/slurm" >> /etc/slurm/slurm.conf && \
-    echo "SlurmdSpoolDir=/var/spool/slurmd" >> /etc/slurm/slurm.conf && \
-    echo "SwitchType=switch/none" >> /etc/slurm/slurm.conf && \
-    echo "MpiDefault=none" >> /etc/slurm/slurm.conf && \
-    echo "ProctrackType=proctrack/pgid" >> /etc/slurm/slurm.conf && \
-    echo "ReturnToService=1" >> /etc/slurm/slurm.conf && \
-    echo "NodeName=slurm-worker1 CPUs=1 State=UNKNOWN" >> /etc/slurm/slurm.conf && \
-    echo "PartitionName=debug Nodes=ALL Default=YES MaxTime=INFINITE State=UP" >> /etc/slurm/slurm.conf
+# NOTE:
+# /etc/slurm is mounted from host via docker-compose
 
 RUN chown -R slurm:slurm /etc/slurm /var/spool/slurm /var/log/slurm
 
 # Expose SSH
 EXPOSE 22
 
-RUN cat << 'EOF' > /start.sh
-#!/bin/bash
-set -e
-
-echo "Syncing user information..."
-cp /etc/passwd /user-sync/passwd
-cp /etc/group /user-sync/group
-cp /etc/shadow /user-sync/shadow 2>/dev/null || true
-
-echo "Setting up shared storage permissions..."
-chown root:root /shared
-chmod 755 /shared
-
-echo "Fixing permissions..."
-chown -R munge:munge /var/log/munge /var/run/munge /etc/munge
-chmod 0700 /var/log/munge
-chmod 0755 /var/run/munge
-chmod 0700 /etc/munge
-chmod 0400 /etc/munge/munge.key
-
-echo "Starting sshd..."
-/usr/sbin/sshd
-
-echo "Starting munged..."
-su -s /bin/bash munge -c "/usr/sbin/munged"
-
-echo "Testing munge..."
-munge -n | unmunge
-
-echo "Starting slurmctld..."
-exec slurmctld -D
-EOF
-
+COPY headnode-entrypoint.sh /start.sh
 RUN chmod +x /start.sh
 
 CMD ["/start.sh"]

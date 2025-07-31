@@ -20,6 +20,7 @@ RUN dnf install -y \
     openmpi-devel \
     gcc \
     gcc-c++ \
+    mariadb \
     && dnf clean all
 
 # Create slurm user and directories with correct permissions
