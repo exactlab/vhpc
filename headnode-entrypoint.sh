@@ -16,7 +16,7 @@ cp /etc/shadow /user-sync/shadow 2>/dev/null || true
 
 echo "Setting up shared storage permissions..."
 chown root:root /shared
-chmod 755 /shared
+chmod 777 /shared
 
 echo "Fixing permissions..."
 chown -R munge:munge /var/log/munge /var/run/munge /etc/munge
