@@ -31,7 +31,8 @@ RUN ssh-keygen -A && \
 # Expose SSH
 EXPOSE 22
 
-RUN cat << 'EOF' > /start.sh
+
+RUN cat > /start.sh <<'EOF'
 #!/bin/bash
 set -e
 
