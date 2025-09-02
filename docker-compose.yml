@@ -31,6 +31,8 @@ services:
       - /sys/fs/cgroup:/sys/fs/cgroup:ro # Host cgroups for resource management
       - shared-storage:/shared           # Shared storage for job data and MPI binaries
       - user-sync:/user-sync             # User account synchronization
+      # Optional: Mount packages.yml for runtime package installation
+      # - ./packages.yml:/packages.yml:ro
     networks:
       - slurm-net
 
@@ -47,6 +49,8 @@ services:
       - /sys/fs/cgroup:/sys/fs/cgroup:ro
       - shared-storage:/shared
       - user-sync:/user-sync:ro
+      # Optional: Mount packages.yml for runtime package installation
+      # - ./packages.yml:/packages.yml:ro
     depends_on:
       - slurm-headnode
     networks:
@@ -65,6 +69,8 @@ services:
       - /sys/fs/cgroup:/sys/fs/cgroup:ro
       - shared-storage:/shared
       - user-sync:/user-sync:ro
+      # Optional: Mount packages.yml for runtime package installation
+      # - ./packages.yml:/packages.yml:ro
     depends_on:
       - slurm-headnode
     networks:
