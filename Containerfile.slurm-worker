@@ -59,6 +59,7 @@ EOF
 
 ENV SLURM_CONF=/etc/slurm/slurm.conf
 
-RUN chmod +x /start.sh
+COPY package-installer.sh /opt/package-installer.sh
+RUN chmod +x /start.sh /opt/package-installer.sh
 
 CMD ["/start.sh"]
