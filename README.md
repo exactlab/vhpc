@@ -229,4 +229,7 @@ The solution uses several optimizations for container environments:
 
 ## License
 
-This project is for educational and testing purposes.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE)
+file for details.
+
+Copyright (c) 2025 [eXact lab S.r.l.](https://exact-lab.it)
