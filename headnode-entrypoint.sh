@@ -1,8 +1,8 @@
 #!/bin/bash
 set -e
 
-echo "Installing additional packages..."
-/opt/package-installer.sh
+echo "Installing additional packages with 3.12..."
+python3.12 /opt/package-installer.py
 
 echo "Initializing shared slurm configuration..."
 # Set proper ownership for shared SLURM configs (mounted from ./slurm-config/)

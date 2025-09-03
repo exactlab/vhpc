@@ -15,14 +15,14 @@ RUN dnf install -y \
     slurm-slurmdbd \
     munge \
     munge-libs \
-    python3 \
-    python3-pip \
+    python3.12 \
+    python3.12-pyyaml \
+    python3.12-pip \
     openmpi \
     openmpi-devel \
     gcc \
     gcc-c++ \
     mariadb \
-    yq \
     && dnf clean all
 
 # Create slurm user and directories with correct permissions

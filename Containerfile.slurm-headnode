@@ -45,7 +45,7 @@ RUN chown -R slurm:slurm /etc/slurm /var/spool/slurm /var/log/slurm
 EXPOSE 22
 
 COPY headnode-entrypoint.sh /start.sh
-COPY package-installer.sh /opt/package-installer.sh
-RUN chmod +x /start.sh /opt/package-installer.sh
+COPY package-installer.py /opt/package-installer.py
+RUN chmod +x /start.sh
 
 CMD ["/start.sh"]

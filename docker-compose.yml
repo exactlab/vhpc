@@ -32,7 +32,7 @@ services:
       - shared-storage:/shared           # Shared storage for job data and MPI binaries
       - user-sync:/user-sync             # User account synchronization
       # Optional: Mount packages.yml for runtime package installation
-      # - ./packages.yml:/packages.yml:ro
+      - ./packages.yml:/packages.yml:ro
     networks:
       - slurm-net
 
