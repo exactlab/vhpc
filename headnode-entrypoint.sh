@@ -5,6 +5,12 @@ echo "Installing additional packages with 3.12..."
 python3.12 /opt/package-installer.py
 
 echo "Initializing shared slurm configuration..."
+# Copy any files in /var/slurm_config to /etc/slurm
+# This is meant to provide a configuration source from the host (via a bind mount)
+# while never writing/chowning files on the host
+if [ -d "/var/slurm_config" ]; then
+    cp -r /var/slurm_config/. /etc/slurm/
+fi
 # Set proper ownership for shared SLURM configs (mounted from ./slurm-config/)
 # This is required because Docker volumes are owned by root by default
 chown -R slurm:slurm /etc/slurm
