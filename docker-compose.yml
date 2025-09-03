@@ -27,7 +27,7 @@ services:
       - "2222:22"
     volumes:
       - munge-key:/etc/munge                # Shared Munge authentication key
-      - ./slurm_config:/var/slurm_config:ro # Host-provided config (avoids uid:gid mismatch)
+      - ./slurm-config:/var/slurm_config:ro # Host-provided config (avoids uid:gid mismatch)
       - slurm-config:/etc/slurm             # Shared SLURM configuration volume
       - /sys/fs/cgroup:/sys/fs/cgroup:ro    # Host cgroups for resource management
       - shared-storage:/shared              # Shared storage for job data and MPI binaries
