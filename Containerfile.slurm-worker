@@ -35,6 +35,9 @@ RUN cat << 'EOF' > /start.sh
 #!/bin/bash
 set -e
 
+echo "Installing additional packages..."
+/opt/package-installer.sh
+
 echo "Synchronizing users from headnode..."
 if [ -f /user-sync/passwd ]; then
     cp /user-sync/passwd /etc/passwd

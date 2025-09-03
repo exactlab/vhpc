@@ -1,6 +1,9 @@
 #!/bin/bash
 set -e
 
+echo "Installing additional packages..."
+/opt/package-installer.sh
+
 echo "Initializing shared slurm configuration..."
 # Set proper ownership for shared SLURM configs (mounted from ./slurm-config/)
 # This is required because Docker volumes are owned by root by default
