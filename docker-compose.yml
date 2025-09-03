@@ -26,11 +26,12 @@ services:
     ports:
       - "2222:22"
     volumes:
-      - munge-key:/etc/munge             # Shared Munge authentication key
-      - ./slurm-config:/etc/slurm        # Shared SLURM configuration directory
-      - /sys/fs/cgroup:/sys/fs/cgroup:ro # Host cgroups for resource management
-      - shared-storage:/shared           # Shared storage for job data and MPI binaries
-      - user-sync:/user-sync             # User account synchronization
+      - munge-key:/etc/munge                # Shared Munge authentication key
+      - ./slurm_config:/var/slurm_config:ro # Host-provided config (avoids uid:gid mismatch)
+      - slurm-config:/etc/slurm             # Shared SLURM configuration volume
+      - /sys/fs/cgroup:/sys/fs/cgroup:ro    # Host cgroups for resource management
+      - shared-storage:/shared              # Shared storage for job data and MPI binaries
+      - user-sync:/user-sync                # User account synchronization
     networks:
       - slurm-net
 
@@ -43,7 +44,7 @@ services:
       - "2223:22"
     volumes:
       - munge-key:/etc/munge:ro
-      - ./slurm-config:/etc/slurm
+      - slurm-config:/etc/slurm # Shared SLURM configuration volume
       - /sys/fs/cgroup:/sys/fs/cgroup:ro
       - shared-storage:/shared
       - user-sync:/user-sync:ro
@@ -61,7 +62,7 @@ services:
       - "2224:22"
     volumes:
       - munge-key:/etc/munge:ro
-      - ./slurm-config:/etc/slurm
+      - slurm-config:/etc/slurm # Shared SLURM configuration volume
       - /sys/fs/cgroup:/sys/fs/cgroup:ro
       - shared-storage:/shared
       - user-sync:/user-sync:ro
