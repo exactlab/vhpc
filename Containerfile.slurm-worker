@@ -35,8 +35,11 @@ RUN cat << 'EOF' > /start.sh
 #!/bin/bash
 set -e
 
-echo "Installing additional packages..."
-python3 /opt/package-installer.py
+echo "Creating a venv with 3.12 (additional packages will be installed in here, if any)"
+python3.12 -m venv venv/
+source venv/bin/activate
+pip install pyyaml # TODO use requirements for package-intaller.py instead?
+python /opt/package-installer.py
 
 echo "Synchronizing users from headnode..."
 if [ -f /user-sync/passwd ]; then

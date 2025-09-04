@@ -1,8 +1,11 @@
 #!/bin/bash
 set -e
 
-echo "Installing additional packages with 3.12..."
-python3.12 /opt/package-installer.py
+echo "Creating a venv with 3.12 (additional packages will be installed in here, if any)"
+python3.12 -m venv venv/
+source venv/bin/activate
+pip install pyyaml # TODO use requirements for package-intaller.py instead?
+python /opt/package-installer.py
 
 echo "Initializing shared slurm configuration..."
 # Copy any files in /var/slurm_config to /etc/slurm
@@ -63,7 +66,7 @@ if [ $? -eq 0 ]; then
     sed -i 's/#AccountingStorageHost=/AccountingStorageHost=/' /etc/slurm/slurm.conf
     sed -i 's/#AccountingStoragePort=/AccountingStoragePort=/' /etc/slurm/slurm.conf
     sed -i 's/#JobAcctGatherType=/JobAcctGatherType=/' /etc/slurm/slurm.conf
-    
+
     # Start slurmdbd in daemon mode (background process)
     slurmdbd -D &
     sleep 10  # Wait for slurmdbd to fully initialize

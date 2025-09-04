@@ -16,7 +16,6 @@ RUN dnf install -y \
     munge \
     munge-libs \
     python3.12 \
-    python3.12-pyyaml \
     python3.12-pip \
     openmpi \
     openmpi-devel \
