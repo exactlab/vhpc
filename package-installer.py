@@ -50,7 +50,7 @@ def install_dnf_packages(packages):
             log("Removing stale extra dnf packages.")
             run_command(f"dnf remove {packages_str}")
 
-    success, stdout, stderr = run_command(f"dnf install {packages_str}")
+    success, stdout, stderr = run_command(f"dnf -y install {packages_str}")
     if success:
         log("Dnf packages installed successfully")
         extra_dnf_packages_lock.write_text(packages_str)
