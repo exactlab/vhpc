@@ -62,10 +62,14 @@ def install_dnf_packages(packages):
 
 
 def install_python_packages(packages):
-    """Install Python packages via pip3."""
+    """Install Python packages via pip."""
     if not packages:
         log("No Python packages specified")
         return True
+
+    from sys import executable as sys_executable
+
+    PIP = f"{sys_executable} -m pip"
 
     packages = sorted(packages)
     packages_str = " ".join(packages)
@@ -78,9 +82,9 @@ def install_python_packages(packages):
             return True
         else:
             log("Removing stale extra Python packages.")
-            run_command(f"pip3 uninstall {packages_str}")
+            run_command(f"{PIP} uninstall {packages_str}")
 
-    success, stdout, stderr = run_command(f"pip3 install {packages_str}")
+    success, stdout, stderr = run_command(f"{PIP} install {packages_str}")
     if success:
         log("Python packages installed successfully")
         extra_python_packages_lock.write_text(packages_str)

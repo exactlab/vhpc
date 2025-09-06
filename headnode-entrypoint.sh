@@ -2,10 +2,8 @@
 set -e
 
 echo "Creating a venv with 3.12 (additional packages will be installed in here, if any)"
-python3.12 -m venv venv/
-source venv/bin/activate
-pip install pyyaml # TODO use requirements for package-intaller.py instead?
-python /opt/package-installer.py
+/opt/venv/bin/python -m pip install pyyaml
+venv/bin/python /opt/package-installer.py
 
 echo "Initializing shared slurm configuration..."
 # Copy any files in /var/slurm_config to /etc/slurm
