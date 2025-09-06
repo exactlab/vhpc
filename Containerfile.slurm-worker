@@ -1,4 +1,4 @@
-ARG BASE_IMAGE=ghcr.io/exactlab/vhpc-base:latest
+ARG BASE_IMAGE=vhpc-base:latest
 FROM ${BASE_IMAGE}
 
 # Install additional runtime dependencies

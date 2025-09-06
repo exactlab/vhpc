@@ -9,8 +9,8 @@ The `packages.yml` file defines additional packages to install at container star
 ```yaml
 dnf_packages:          # Optional: List of Rocky Linux packages
   - string             # Package name (e.g., "htop", "git")
-  
-python_packages:       # Optional: List of Python packages  
+
+python_packages:       # Optional: List of Python packages
   - string             # Package name (e.g., "numpy", "pandas")
 ```
 
@@ -29,7 +29,7 @@ python_packages:       # Optional: List of Python packages
 - **Examples**: `htop`, `git`, `vim`, `gcc-c++`
 - **Validation**: Package names are not pre-validated; invalid names cause installation failure
 
-### python_packages Section  
+### python_packages Section
 - **Type**: Array of strings
 - **Required**: No
 - **Description**: Python packages installed via `pip3 install`
@@ -39,21 +39,6 @@ python_packages:       # Optional: List of Python packages
 
 ## Example Files
 
-### Complete Example
-```yaml
-dnf_packages:
-  - htop
-  - git
-  - nano
-  - gcc-c++
-
-python_packages:
-  - numpy
-  - pandas>=1.5.0
-  - requests
-  - matplotlib
-```
-
 ### Minimal Example
 ```yaml
 dnf_packages:
@@ -61,25 +46,6 @@ dnf_packages:
 
 python_packages:
   - numpy
-```
-
-### DNF Only
-```yaml
-dnf_packages:
-  - htop
-  - vim
-```
-
-### Python Only  
-```yaml
-python_packages:
-  - numpy
-  - pandas
-```
-
-### Empty (No Additional Packages)
-```yaml
-# No packages - valid but unnecessary
 ```
 
 ## Error Handling
@@ -120,6 +86,6 @@ services:
 1. Container starts
 2. Package installer runs (`/opt/package-installer.sh`)
 3. DNF packages installed first
-4. Python packages installed second  
+4. Python packages installed second
 5. SLURM services start
 6. Container ready for use
