@@ -44,6 +44,9 @@ RUN chown -R slurm:slurm /etc/slurm /var/spool/slurm /var/log/slurm
 # Expose SSH
 EXPOSE 22
 
+RUN python3.12 -m venv /opt/venv
+RUN ln -s /usr/bin/python /opt/venv/bin/python
+
 COPY headnode-entrypoint.sh /start.sh
 COPY package-installer.py /opt/package-installer.py
 RUN chmod +x /start.sh
