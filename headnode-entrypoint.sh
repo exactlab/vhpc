@@ -3,7 +3,7 @@ set -e
 
 echo "Creating a venv with 3.12 (additional packages will be installed in here, if any)"
 /opt/venv/bin/python -m pip install pyyaml
-venv/bin/python /opt/package-installer.py
+/opt/venv/bin/python /opt/package-installer.py
 
 echo "Initializing shared slurm configuration..."
 # Copy any files in /var/slurm_config to /etc/slurm
