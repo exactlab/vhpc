@@ -38,7 +38,7 @@ set -e
 echo "Creating a venv with 3.12 (additional packages will be installed in here, if any)"
 python3.12 -m venv venv/
 source venv/bin/activate
-pip install pyyaml # TODO use requirements for package-intaller.py instead?
+pip install pyyaml # requirement for package-installer.py
 python /opt/package-installer.py
 
 echo "Synchronizing users from headnode..."
