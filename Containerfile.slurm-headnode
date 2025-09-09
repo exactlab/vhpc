@@ -37,7 +37,7 @@ RUN mkdir -p /var/run/sshd && \
     sed -i 's/^#PasswordAuthentication.*/PasswordAuthentication yes/' /etc/ssh/sshd_config
 
 # NOTE:
-# /etc/slurm is mounted from host via docker-compose
+# /etc/slurm is mounted as a volume via docker-compose
 
 RUN chown -R slurm:slurm /etc/slurm /var/spool/slurm /var/log/slurm
 
@@ -45,7 +45,7 @@ RUN chown -R slurm:slurm /etc/slurm /var/spool/slurm /var/log/slurm
 EXPOSE 22
 
 RUN python3.12 -m venv /opt/venv
-RUN ln -s /usr/bin/python /opt/venv/bin/python
+RUN ln -s /opt/venv/bin/python /usr/bin/python
 
 COPY headnode-entrypoint.sh /start.sh
 COPY package-installer.py /opt/package-installer.py
