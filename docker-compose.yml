@@ -17,7 +17,8 @@ services:
     restart: unless-stopped              # Auto-restart for high availability
 
   slurm-headnode:
-    image: ghcr.io/exactlab/vhpc-headnode:latest
+    # image: ghcr.io/exactlab/vhpc-headnode:latest
+    image: vhpc-headnode:latest
     container_name: slurm-headnode0
     hostname: slurm-headnode
     privileged: true
@@ -32,6 +33,9 @@ services:
       - /sys/fs/cgroup:/sys/fs/cgroup:ro    # Host cgroups for resource management
       - shared-storage:/shared              # Shared storage for job data and MPI binaries
       - user-sync:/user-sync                # User account synchronization
+      # Optional: Mount packages.yml for runtime package installation
+      - venv:/opt/venv
+      - ./packages.yml:/packages.yml:ro
     networks:
       - slurm-net
 
@@ -48,6 +52,8 @@ services:
       - /sys/fs/cgroup:/sys/fs/cgroup:ro
       - shared-storage:/shared
       - user-sync:/user-sync:ro
+      - venv:/opt/venv:ro
+      - ./packages.yml:/packages.yml:ro
     depends_on:
       - slurm-headnode
     networks:
@@ -66,6 +72,8 @@ services:
       - /sys/fs/cgroup:/sys/fs/cgroup:ro
       - shared-storage:/shared
       - user-sync:/user-sync:ro
+      - venv:/opt/venv:ro
+      - ./packages.yml:/packages.yml:ro
     depends_on:
       - slurm-headnode
     networks:
@@ -77,6 +85,7 @@ volumes:
   user-sync:
   slurm-db-data:
   slurm-config:
+  venv:
 
 networks:
   slurm-net:

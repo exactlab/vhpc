@@ -1,6 +1,10 @@
 #!/bin/bash
 set -e
 
+echo "Creating a venv with 3.12 (additional packages will be installed in here, if any)"
+/opt/venv/bin/python -m pip install pyyaml
+/opt/venv/bin/python /opt/package-installer.py
+
 echo "Initializing shared slurm configuration..."
 # Copy any files in /var/slurm_config to /etc/slurm
 # This is meant to provide a configuration source from the host (via a bind mount)
@@ -60,7 +64,7 @@ if [ $? -eq 0 ]; then
     sed -i 's/#AccountingStorageHost=/AccountingStorageHost=/' /etc/slurm/slurm.conf
     sed -i 's/#AccountingStoragePort=/AccountingStoragePort=/' /etc/slurm/slurm.conf
     sed -i 's/#JobAcctGatherType=/JobAcctGatherType=/' /etc/slurm/slurm.conf
-    
+
     # Start slurmdbd in daemon mode (background process)
     slurmdbd -D &
     sleep 10  # Wait for slurmdbd to fully initialize

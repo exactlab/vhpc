@@ -1,4 +1,4 @@
-ARG BASE_IMAGE=ghcr.io/exactlab/vhpc-base:latest
+ARG BASE_IMAGE=vhpc-base:latest
 FROM ${BASE_IMAGE}
 
 # Install additional runtime dependencies
@@ -31,9 +31,23 @@ RUN ssh-keygen -A && \
 # Expose SSH
 EXPOSE 22
 
+# link python interpreter from shared venv, if it exists
+RUN if [ -f /opt/venv/bin/python ]; then ln -s /opt/venv/bin/python /usr/bin/python; fi
+
 RUN cat << 'EOF' > /start.sh
 #!/bin/bash
 set -e
+
+if [ -f /opt/venv/bin/python ]; then
+    echo "Using shared venv, installing only dnf extra packages"
+    /opt/venv/bin/python /opt/package-installer.py --no-pip
+else
+    echo "Creating a venv with 3.12 (additional packages will be installed in here, if any)"
+    python3.12 -m venv venv/
+    source venv/bin/activate
+    pip install pyyaml # requirement for package-installer.py
+    python /opt/package-installer.py
+fi
 
 echo "Synchronizing users from headnode..."
 if [ -f /user-sync/passwd ]; then
@@ -56,6 +70,7 @@ EOF
 
 ENV SLURM_CONF=/etc/slurm/slurm.conf
 
+COPY package-installer.py /opt/package-installer.py
 RUN chmod +x /start.sh
 
 CMD ["/start.sh"]
