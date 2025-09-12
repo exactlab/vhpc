@@ -9,6 +9,7 @@ RUN dnf makecache && \
 
 # Install Slurm, MPI, and dependencies from packages
 RUN dnf install -y \
+    iputils \
     slurm \
     slurm-slurmctld \
     slurm-slurmd \
