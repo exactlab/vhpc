@@ -25,10 +25,10 @@ RUN useradd -m user && echo "user:password" | chpasswd
 RUN ssh-keygen -A && \
     mkdir -p /var/run/sshd && \
     echo 'root:rootpass' | chpasswd
-RUN cat << EOF > /etc/ssh/sshd_config.d/01.PermitRootLogin.conf
+RUN cat << EOF > /etc/ssh/sshd_config.d/98.PermitRootLogin.conf
 PermitRootLogin yes
 EOF
-RUN cat << EOF > /etc/ssh/sshd_config.d/02.PasswordAuthentication.conf
+RUN cat << EOF > /etc/ssh/sshd_config.d/99.PasswordAuthentication.conf
 PasswordAuthentication yes
 EOF
 
