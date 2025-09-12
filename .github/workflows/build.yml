@@ -87,7 +87,7 @@ jobs:
               -H "Accept: application/vnd.github+json" \
               -H "X-GitHub-Api-Version: 2022-11-28" \
               /orgs/exactlab/packages/container/vhpc-$image/versions \
-              --jq '.[] | select(.metadata.container.tags | length > 0) | select(.metadata.container.tags[] | test("^(?!latest$|${{ steps.meta.outputs.sha_short }}$).*")) | .id')
+              --jq '.[] | select(.metadata.container.tags | length > 0) | select([.metadata.container.tags[] | select(. == "latest" or . == "${{ steps.meta.outputs.sha_short }}")] | length == 0) | .id')
 
             # Delete old versions
             for version_id in $OLD_VERSIONS; do
