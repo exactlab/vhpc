@@ -2,7 +2,7 @@ name: Build and Push Docker Images
 
 on:
   push:
-    branches: [ main ]
+    branches: [ 10-ci-build-cleanup-of-old-untagged-images-fails ]
   workflow_dispatch:
 
 env:
