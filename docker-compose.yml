@@ -53,6 +53,7 @@ services:
       - shared-storage:/shared
       - user-sync:/user-sync:ro
       - venv:/opt/venv:ro
+      - ./packages.yml:/packages.yml:ro
     depends_on:
       - slurm-headnode
     networks:
@@ -72,6 +73,7 @@ services:
       - shared-storage:/shared
       - user-sync:/user-sync:ro
       - venv:/opt/venv:ro
+      - ./packages.yml:/packages.yml:ro
     depends_on:
       - slurm-headnode
     networks:

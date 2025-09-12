@@ -129,10 +129,20 @@ def load_packages_config():
         log(f"ERROR: Failed to read packages.yml: {e}")
         return None, None
 
+def parse_args():
+    """Argument parser"""
+    parser = argparse.ArgumentParser(description="Package installer (pip, dnf) for VHPC containers.")
+    parser.add_argument(
+        "--no-pip", action="store_true", default=False,
+        help="Skip installing pip packages")
+    return parser.parse_args()
 
 def main():
     """Main package installation routine."""
+
     log("Starting package installation...")
+
+    args = parse_args()
 
     dnf_packages, python_packages = load_packages_config()
 
@@ -145,7 +155,7 @@ def main():
     if dnf_packages:
         if not install_dnf_packages(dnf_packages):
             success = False
-    if python_packages:
+    if python_packages and not args.no_pip:
         if not install_python_packages(python_packages):
             success = False
 
