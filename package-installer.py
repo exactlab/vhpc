@@ -5,6 +5,7 @@ import os
 import subprocess
 import sys
 from pathlib import Path
+import argparse
 
 import yaml
 
@@ -136,7 +137,7 @@ def main():
     dnf_packages, python_packages = load_packages_config()
 
     if dnf_packages is None and python_packages is None:
-        log("Skipping package installation due to configuration errors")
+        log("Skipping package installation: no packages set to be installed")
         sys.exit(1)
 
     success = True
