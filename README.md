@@ -93,11 +93,14 @@ docker compose up -d
 ```
 
 ### Accessing the Cluster
+
 - **Head Node SSH**: `ssh root@localhost -p 2222` (password: `rootpass`)
 - **Worker1 SSH**: `ssh root@localhost -p 2223` (password: `rootpass`)
 - **Worker2 SSH**: `ssh root@localhost -p 2224` (password: `rootpass`)
 - **Non-privileged User**: `user` (password: `password`) - recommended for job
   submission
+
+In the example compose file, SSH is binded to the host localhost only.
 
 ### Example SLURM Commands
 ```bash
@@ -183,6 +186,13 @@ The solution uses several optimizations for container environments:
 
 - Default passwords are used for demonstration purposes
 - SSH root login is enabled for testing
+  - this can be overridden in the compose file, in each service, by mounting an appropriate configuration file, e.g. in `/etc/ssh/sshd_config.d/10.NoRootNoPassword.conf`:
+
+  ```plaintext
+  PermitRootLogin no
+  PasswordAuthentication no
+  ```
+
 - Consider using SSH keys in production environments
 - Munge keys are shared via Docker volumes
 - User account sync happens automatically on container startup
