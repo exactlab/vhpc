@@ -17,8 +17,7 @@ services:
     restart: unless-stopped              # Auto-restart for high availability
 
   slurm-headnode:
-    # image: ghcr.io/exactlab/vhpc-headnode:latest
-    image: vhpc-headnode:latest
+    image: ghcr.io/exactlab/vhpc-headnode:latest
     container_name: slurm-headnode0
     hostname: slurm-headnode
     privileged: true
