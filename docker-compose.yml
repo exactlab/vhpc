@@ -35,6 +35,12 @@ services:
       # Optional: Mount packages.yml for runtime package installation
       - venv:/opt/venv
       - ./packages.yml:/packages.yml:ro
+    healthcheck:
+      test: sinfo
+      interval: 30s
+      timeout: 30s
+      retries: 3
+      start_period: 60s
     networks:
       - slurm-net
 
@@ -54,7 +60,9 @@ services:
       - venv:/opt/venv:ro
       - ./packages.yml:/packages.yml:ro
     depends_on:
-      - slurm-headnode
+      slurm-headnode:
+        condition: service_healthy
+        restart: true
     networks:
       - slurm-net
 
@@ -74,7 +82,9 @@ services:
       - venv:/opt/venv:ro
       - ./packages.yml:/packages.yml:ro
     depends_on:
-      - slurm-headnode
+      slurm-headnode:
+        condition: service_healthy
+        restart: true
     networks:
       - slurm-net
 
