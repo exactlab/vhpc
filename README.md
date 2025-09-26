@@ -93,11 +93,14 @@ docker compose up -d
 ```
 
 ### Accessing the Cluster
+
 - **Head Node SSH**: `ssh root@localhost -p 2222` (password: `rootpass`)
 - **Worker1 SSH**: `ssh root@localhost -p 2223` (password: `rootpass`)
 - **Worker2 SSH**: `ssh root@localhost -p 2224` (password: `rootpass`)
 - **Non-privileged User**: `user` (password: `password`) - recommended for job
   submission
+
+In the example compose file, SSH is binded to the host localhost only.
 
 ### Example SLURM Commands
 ```bash
@@ -169,13 +172,27 @@ The solution uses several optimizations for container environments:
 - **shared-storage**: Persistent storage for job files and MPI binaries
 - **user-sync**: User account synchronization from head node to workers
 - **slurm-db-data**: MariaDB persistent storage for job accounting
-- **slurm-config**: Shared SLURM configuration files (NOTE: not used, configs
-  mounted from ./slurm-config/)
+- **slurm-config**: shared SLURM configuration files
+  - to override the configuration, see [SLURM Configuration Changes](#slurm-configuration-changes)
+- **venv**: shared Python virtual environment
+  - to install extra packages, see [Extra Packages](#extra-packages)
+
+### Bind mounts
+
+- `/sys/fs/cgroup:/sys/fs/cgroup:ro` required by the cgroup support in SLURM
+- `./slurm-config:/var/slurm_config:ro` (`./slurm-config` provided as an example) enabling to provide files to be placed in `/etc/slurm/` across all nodes (see  [SLURM Configuration Changes](#slurm-configuration-changes))
 
 ## Security Considerations
 
 - Default passwords are used for demonstration purposes
 - SSH root login is enabled for testing
+  - this can be overridden in the compose file, in each service, by mounting an appropriate configuration file, e.g. in `/etc/ssh/sshd_config.d/10.NoRootNoPassword.conf`:
+
+  ```plaintext
+  PermitRootLogin no
+  PasswordAuthentication no
+  ```
+
 - Consider using SSH keys in production environments
 - Munge keys are shared via Docker volumes
 - User account sync happens automatically on container startup
@@ -212,10 +229,42 @@ The solution uses several optimizations for container environments:
 - Check if `/user-sync/passwd` exists on head node
 - Restart worker containers if user changes don't propagate
 
-### Configuration Changes
-- Modify files in `./slurm-config/` directory
+### SLURM Configuration Changes
+
+- Modify the files in `./slurm-config/`
 - Restart containers to apply changes: `docker compose restart`
 - Changes are automatically shared across all nodes
+
+On startup, all files in `./slurm-config/` (bind-mounted to `/var/slurm_config`) are copied to `/etc/slurm` by the headnode.
+`/etc/slurm` in turn is a volume shared across all nodes.
+This ensures the config synchronization between hosts and that no writes are done on directories on the host (since a change of ownership of the files in `/etc/slurm` is required).
+
+### Extra Packages
+
+Provide a YAML file with extra packages to be installed by `pip` and/or `dnf`, with a bind mount to the headnode:
+
+```yaml
+...
+    volumes:
+      ...
+      # Optional: Mount packages.yml for runtime package installation
+      - ./packages.yml:/packages.yml:ro
+...
+```
+
+A `packages.yml.example` file is provided as a starting point.
+The file is structured into two main lists:
+
+- `dnf_packages`: for system packages (e.g., `htop`, `git`, `vim`)
+- `python_packages`: for Python libraries (e.g., `pydantic`, `pandas`, `requests`)
+
+Packages are persistent on container restart and calls to the installation scripts are idempotent.
+
+Be mindful that:
+
+- installing large packages can increase the startup time of your containers.
+- if a package fails to install, the error will be logged, but it will not prevent the container from starting.
+- packages are installed at container startup, **before** core services (like SLURM) are initialized.
 
 ### Graceful Degradation Behavior
 - **Database Available**: Full accounting enabled, `sacct` works normally

@@ -1,4 +1,4 @@
-ARG BASE_IMAGE=ghcr.io/exactlab/vhpc-base:latest
+ARG BASE_IMAGE=vhpc-base:latest
 FROM ${BASE_IMAGE}
 
 # Install additional runtime dependencies
@@ -32,19 +32,27 @@ RUN useradd -m user && echo "user:password" | chpasswd
 # Enable SSH root login and start SSHD
 RUN ssh-keygen -A 
 RUN mkdir -p /var/run/sshd && \
-    echo 'root:rootpass' | chpasswd && \
-    sed -i 's/^#PermitRootLogin.*/PermitRootLogin yes/' /etc/ssh/sshd_config && \
-    sed -i 's/^#PasswordAuthentication.*/PasswordAuthentication yes/' /etc/ssh/sshd_config
+    echo 'root:rootpass' | chpasswd
+RUN cat << EOF > /etc/ssh/sshd_config.d/98.PermitRootLogin.conf
+PermitRootLogin yes
+EOF
+RUN cat << EOF > /etc/ssh/sshd_config.d/99.PasswordAuthentication.conf
+PasswordAuthentication yes
+EOF
 
 # NOTE:
-# /etc/slurm is mounted from host via docker-compose
+# /etc/slurm is mounted as a volume via docker-compose
 
 RUN chown -R slurm:slurm /etc/slurm /var/spool/slurm /var/log/slurm
 
 # Expose SSH
 EXPOSE 22
 
+RUN python3.12 -m venv /opt/venv
+RUN ln -s /opt/venv/bin/python /usr/bin/python
+
 COPY headnode-entrypoint.sh /start.sh
+COPY package-installer.py /opt/package-installer.py
 RUN chmod +x /start.sh
 
 CMD ["/start.sh"]

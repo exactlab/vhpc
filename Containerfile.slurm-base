@@ -9,13 +9,15 @@ RUN dnf makecache && \
 
 # Install Slurm, MPI, and dependencies from packages
 RUN dnf install -y \
+    iputils \
     slurm \
     slurm-slurmctld \
     slurm-slurmd \
     slurm-slurmdbd \
     munge \
     munge-libs \
-    python3 \
+    python3.12 \
+    python3.12-pip \
     openmpi \
     openmpi-devel \
     gcc \

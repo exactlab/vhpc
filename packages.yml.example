@@ -1,0 +1,31 @@
+# packages.yml - Runtime package installation configuration
+# 
+# USAGE:
+#   1. Copy this file to packages.yml 
+#   2. Uncomment volume mount in docker-compose.yml:
+#      - ./packages.yml:/packages.yml:ro
+#   3. Customize package lists below
+#   4. Start containers: docker compose up
+#
+# SCHEMA VALIDATION:
+#   - Both dnf_packages and python_packages are optional
+#   - Each must be a list of strings (package names)
+#   - Empty lists are valid
+#   - Invalid package names will cause installation to fail
+
+# Rocky Linux packages to install via dnf
+# These packages are installed system-wide and available to all users
+dnf_packages:
+  - htop              
+
+# Python packages to install via pip3
+# These packages are installed globally for Python 3
+python_packages:
+  - pydantic
+
+# NOTES:
+# - Package installation happens at container startup before SLURM services
+# - Failed package installations will be logged but won't prevent startup
+# - Packages are installed with timeout protection (5 minutes max)
+# - Installation is idempotent - restarting containers is safe
+# - Large packages may increase container startup time
