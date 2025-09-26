@@ -38,7 +38,7 @@ EXPOSE 22
 # link python interpreter from shared venv, if it exists
 RUN if [ -f /opt/venv/bin/python ]; then ln -s /opt/venv/bin/python /usr/bin/python; fi
 
-RUN cat << 'EOF' > /start.sh
+RUN cat > /start.sh <<'EOF'
 #!/bin/bash
 set -e
 
