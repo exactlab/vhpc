@@ -5,9 +5,11 @@ vhpc-base:
 
 vhpc-headnode: vhpc-base
 	docker build -f Containerfile.slurm-headnode -t vhpc-headnode:latest --build-arg BASE_IMAGE=vhpc-base:latest .
+	docker tag vhpc-headnode:latest ghcr.io/exactlab/vhpc-headnode:latest
 
 vhpc-worker: vhpc-base
 	docker build -f Containerfile.slurm-worker -t vhpc-worker:latest --build-arg BASE_IMAGE=vhpc-base:latest .
+	docker tag vhpc-worker:latest ghcr.io/exactlab/vhpc-worker:latest
 
 all: vhpc-headnode vhpc-worker
 

@@ -7,6 +7,8 @@ echo "Creating a venv with 3.12 (additional packages will be installed in here, 
 
 echo "Copying SSH keys to shared directory..."
 cp /opt/ssh-keys/* /ssh-keys/ 2>/dev/null || true
+chmod 644 /ssh-keys/id_ed25519.pub 2>/dev/null || true
+chmod 644 /ssh-keys/id_ed25519 2>/dev/null || true
 
 echo "Initializing shared slurm configuration..."
 # Copy any files in /var/slurm_config to /etc/slurm

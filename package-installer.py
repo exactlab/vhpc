@@ -102,6 +102,13 @@ def load_packages_config():
         log("No packages.yml found, skipping package installation")
         return None, None
 
+    if os.path.isdir(PACKAGES_FILE):
+        log(
+            "WARNING: packages.yml is a directory (likely created by Docker "
+            "bind mount). Skipping package installation"
+        )
+        return None, None
+
     try:
         with open(PACKAGES_FILE) as f:
             config = yaml.safe_load(f)
@@ -129,13 +136,20 @@ def load_packages_config():
         log(f"ERROR: Failed to read packages.yml: {e}")
         return None, None
 
+
 def parse_args():
     """Argument parser"""
-    parser = argparse.ArgumentParser(description="Package installer (pip, dnf) for VHPC containers.")
+    parser = argparse.ArgumentParser(
+        description="Package installer (pip, dnf) for VHPC containers."
+    )
     parser.add_argument(
-        "--no-pip", action="store_true", default=False,
-        help="Skip installing pip packages")
+        "--no-pip",
+        action="store_true",
+        default=False,
+        help="Skip installing pip packages",
+    )
     return parser.parse_args()
+
 
 def main():
     """Main package installation routine."""

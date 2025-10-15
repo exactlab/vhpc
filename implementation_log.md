@@ -37,7 +37,7 @@ build and expose them via bind mount for user access.
      root@localhost`
    - [x] Document that keys are generated automatically during build
    - [x] Add warning: "Keys are for testing only, not production"
-   - [ ] Test both authentication methods work simultaneously
+   - [x] Test both authentication methods work simultaneously
 
 ## Implementation log
 
@@ -74,3 +74,30 @@ users while enabling production-like key-based access.
 **User account consolidation**: Moved user creation to base image since both
 sub-images used identical `useradd` commands, further reducing duplication
 and ensuring consistent UID/GID across cluster nodes.
+
+### Step 3: Documentation updates
+
+**Image tagging strategy**: Updated makefile to tag local builds with GitHub
+registry names (`ghcr.io/exactlab/vhpc-*:latest`), leveraging Docker
+Compose's native behavior of preferring local images when available while
+maintaining compatibility with distributed versions.
+
+**Mount point permissions issue**: Keys copied from container to bind mount
+retain root ownership, making them inaccessible to host users. Solved by
+setting 644 permissions during runtime copy operation in entrypoint script,
+allowing any host user to read the keys for SSH authentication.
+
+### Miscellaneous fixes
+
+**Docker bind mount directory creation**: When `packages.yml` doesn't exist
+on host, Docker creates it as directory instead of file, causing package
+installer to fail. Fixed by adding directory detection in
+`load_packages_config()` function to gracefully skip installation with
+warning instead of catastrophic failure.
+
+**Health check timeout**: Container startup may exceed health check timeout
+due to package installation and SLURM initialization. SSH functionality
+remains operational despite health check failures, as verified by manual
+testing.
+
+
