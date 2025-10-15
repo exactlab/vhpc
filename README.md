@@ -94,11 +94,22 @@ docker compose up -d
 
 ### Accessing the Cluster
 
-- **Head Node SSH**: `ssh root@localhost -p 2222` (password: `rootpass`)
-- **Worker1 SSH**: `ssh root@localhost -p 2223` (password: `rootpass`)
-- **Worker2 SSH**: `ssh root@localhost -p 2224` (password: `rootpass`)
+**SSH Key Authentication (Recommended)**:
+- **Head Node**: `ssh -i ./ssh-keys/id_ed25519 -p 2222 root@localhost`
+- **Worker1**: `ssh -i ./ssh-keys/id_ed25519 -p 2223 root@localhost`
+- **Worker2**: `ssh -i ./ssh-keys/id_ed25519 -p 2224 root@localhost`
+- **Non-privileged User**: `ssh -i ./ssh-keys/id_ed25519 -p 2222 user@localhost`
+
+**Password Authentication (Fallback)**:
+- **Head Node SSH**: `ssh -p 2222 root@localhost` (password: `rootpass`)
+- **Worker1 SSH**: `ssh -p 2223 root@localhost` (password: `rootpass`)
+- **Worker2 SSH**: `ssh -p 2224 root@localhost` (password: `rootpass`)
 - **Non-privileged User**: `user` (password: `password`) - recommended for job
   submission
+
+**⚠️ Security Note**: SSH keys are automatically generated during container build
+for testing and educational purposes only. Do not use these keys in production
+environments.
 
 In the example compose file, SSH is binded to the host localhost only.
 

@@ -30,6 +30,9 @@ RUN useradd -r -s /bin/false slurm && \
     mkdir -p /var/spool/slurm /var/log/slurm /run/slurm /var/spool/slurmd && \
     chown -R slurm:slurm /var/spool/slurm /var/log/slurm /run/slurm /var/spool/slurmd
 
+# Add unprivileged user for job execution
+RUN useradd -m user && echo "user:password" | chpasswd
+
 # Configure OpenMPI for container environments
 RUN echo 'export OMPI_MCA_btl_vader_single_copy_mechanism=none' >> /etc/environment && \
     echo 'export OMPI_MCA_btl=tcp,self' >> /etc/environment && \
@@ -37,3 +40,26 @@ RUN echo 'export OMPI_MCA_btl_vader_single_copy_mechanism=none' >> /etc/environm
 
 # Set up shared storage with proper permissions
 RUN mkdir -p /shared && chmod 755 /shared
+
+# Generate SSH keypair for cluster-wide authentication (testing/educational purposes)
+RUN mkdir -p /opt/ssh-keys && \
+    ssh-keygen -t ed25519 -f /opt/ssh-keys/id_ed25519 -N "" && \
+    chmod 600 /opt/ssh-keys/id_ed25519 && \
+    chmod 644 /opt/ssh-keys/id_ed25519.pub
+
+# Set up SSH key authentication for both root and user accounts
+RUN mkdir -p /root/.ssh /home/user/.ssh && \
+    cp /opt/ssh-keys/id_ed25519.pub /root/.ssh/authorized_keys && \
+    cp /opt/ssh-keys/id_ed25519.pub /home/user/.ssh/authorized_keys && \
+    chmod 700 /root/.ssh /home/user/.ssh && \
+    chmod 600 /root/.ssh/authorized_keys /home/user/.ssh/authorized_keys && \
+    chown -R user:user /home/user/.ssh
+
+# Create mount point for sharing keys with host
+RUN mkdir -p /ssh-keys
+
+# Configure SSH daemon to support both password and key authentication
+RUN mkdir -p /etc/ssh/sshd_config.d && \
+    echo 'PubkeyAuthentication yes' > /etc/ssh/sshd_config.d/97.PubkeyAuthentication.conf && \
+    echo 'PasswordAuthentication yes' > /etc/ssh/sshd_config.d/99.PasswordAuthentication.conf && \
+    echo 'PermitRootLogin yes' > /etc/ssh/sshd_config.d/98.PermitRootLogin.conf
