@@ -98,16 +98,16 @@ def install_python_packages(packages):
 
 def load_packages_config():
     """Load and parse packages.yml configuration."""
-    if not os.path.exists(PACKAGES_FILE):
+    packages_path = Path(PACKAGES_FILE)
+    if not packages_path.exists():
         log("No packages.yml found, skipping package installation")
-        return None, None
-
-    if os.path.isdir(PACKAGES_FILE):
+        return [], []
+    elif packages_path.is_dir():
         log(
             "WARNING: packages.yml is a directory (likely created by Docker "
             "bind mount). Skipping package installation"
         )
-        return None, None
+        return [], []
 
     try:
         with open(PACKAGES_FILE) as f:
