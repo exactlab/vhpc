@@ -68,11 +68,11 @@ docker compose up -d
 
 ### Locally Building Images
 
-We also provide a compose file for local development, with the relevant `build` and `pull-policy` directives set: `docker-compose-local.yml`.
+For local development purposes, use this:
 
 ```bash
-docker compose -f docker-compose-local.yml build
-docker compose -f docker-compose-local.yml up -d
+docker compose build
+docker compose up -d
 ```
 
 ### Accessing the Cluster
