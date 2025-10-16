@@ -36,6 +36,8 @@ services:
       # Optional: Mount packages.yml for runtime package installation
       - venv:/opt/venv
       - ./packages.yml:/packages.yml:ro
+      - home:/home
+      - scratch:/scratch
     healthcheck:
       test: sinfo
       interval: 30s
@@ -61,6 +63,8 @@ services:
       - ./ssh-keys:/ssh-keys                # Project-local SSH keys for authentication
       - venv:/opt/venv:ro
       - ./packages.yml:/packages.yml:ro
+      - home:/home
+      - scratch:/scratch
     depends_on:
       slurm-headnode:
         condition: service_healthy
@@ -84,6 +88,8 @@ services:
       - ./ssh-keys:/ssh-keys                # Project-local SSH keys for authentication
       - venv:/opt/venv:ro
       - ./packages.yml:/packages.yml:ro
+      - home:/home
+      - scratch:/scratch
     depends_on:
       slurm-headnode:
         condition: service_healthy
@@ -98,6 +104,8 @@ volumes:
   slurm-db-data:
   slurm-config:
   venv:
+  home:
+  scratch:
 
 networks:
   slurm-net:
