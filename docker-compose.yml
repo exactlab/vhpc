@@ -16,8 +16,25 @@ services:
     command: --innodb-buffer-pool-size=64M --innodb-log-file-size=32M
     restart: unless-stopped              # Auto-restart for high availability
 
+  vhpc-base-image:
+    image: ghcr.io/exactlab/vhpc-base:latest
+    pull_policy: missing
+    build:
+      context: .
+      dockerfile: Containerfile.slurm-base
+    deploy:
+      replicas: 0
+
   slurm-headnode:
     image: ghcr.io/exactlab/vhpc-headnode:latest
+    pull_policy: missing
+    build:
+      context: .
+      dockerfile: Containerfile.slurm-headnode
+      args:
+        - BASE_IMAGE=ghcr.io/exactlab/vhpc-base:latest
+      cache_from:
+        - vhpc-base:latest
     container_name: slurm-headnode0
     hostname: slurm-headnode
     privileged: true
@@ -49,6 +66,14 @@ services:
 
   slurm-worker1:
     image: ghcr.io/exactlab/vhpc-worker:latest
+    pull_policy: missing
+    build:
+      context: .
+      dockerfile: Containerfile.slurm-worker
+      args:
+        - BASE_IMAGE=vhpc-base:latest
+      cache_from:
+        - vhpc-base:latest
     container_name: slurm-worker1
     hostname: slurm-worker1
     privileged: true
@@ -74,6 +99,14 @@ services:
 
   slurm-worker2:
     image: ghcr.io/exactlab/vhpc-worker:latest
+    pull_policy: missing
+    build:
+      context: .
+      dockerfile: Containerfile.slurm-worker
+      args:
+        - BASE_IMAGE=vhpc-base:latest
+      cache_from:
+        - vhpc-base:latest
     container_name: slurm-worker2
     hostname: slurm-worker2
     privileged: true

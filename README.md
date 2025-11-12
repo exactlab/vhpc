@@ -44,51 +44,34 @@ vhpc/
 ├── Containerfile.slurm-worker    # Worker node with user sync from head node
 ├── headnode-entrypoint.sh        # Headnode startup script with graceful degradation
 ├── docker-compose.yml            # Multi-container orchestration (4 services, 5 volumes)
-├── slurm-config/                 # Shared SLURM configuration directory
-│   ├── slurm.conf               # SLURM cluster configuration (4 CPU per worker)
-│   ├── slurmdbd.conf            # SLURM database daemon configuration
-│   └── cgroup.conf              # Cgroup configuration for resource management
-└── makefile                      # Build automation
+└── slurm-config/                 # Shared SLURM configuration directory
+     ├── slurm.conf               # SLURM cluster configuration (4 CPU per worker)
+     ├── slurmdbd.conf            # SLURM database daemon configuration
+     └── cgroup.conf              # Cgroup configuration for resource management
 ```
 
 ## Prerequisites
 
 - Docker Engine
 - Docker Compose
-- Make (optional, for automated builds)
-
-## Build Instructions
-
-### Option 1: Using Make (Recommended)
-```bash
-make all
-```
-
-### Option 2: Manual Build
-```bash
-# Build base image first
-docker build -f Containerfile.slurm-base -t vhpc-base:latest .
-
-# Build head node
-docker build -f Containerfile.slurm-headnode -t vhpc-headnode:latest --build-arg BASE_IMAGE=vhpc-base:latest .
-
-# Build worker node
-docker build -f Containerfile.slurm-worker -t vhpc-worker:latest --build-arg BASE_IMAGE=vhpc-base:latest .
-```
 
 ## Usage
 
-### Using Pre-built Images (Recommended)
+### Using Pre-built Images
+
+The provided `docker-compose.yml` pulls the latest images from GitHub Container Registry:
+
 ```bash
-# Pull latest images from GitHub Container Registry
 docker compose pull
 docker compose up -d
 ```
 
-### Using Local Build
+### Locally Building Images
+
+For local development purposes, use this:
+
 ```bash
-# Build images locally
-make all
+docker compose build
 docker compose up -d
 ```
 
