@@ -47,7 +47,7 @@ vhpc/
 └── slurm-config/                 # Shared SLURM configuration directory
      ├── slurm.conf               # SLURM cluster configuration (4 CPU per worker)
      ├── slurmdbd.conf            # SLURM database daemon configuration
-     └── cgroup.conf              # Cgroup configuration for resource management
+     └── cgroup.conf              # Cgroup configuration (currently not supported)
 ```
 
 ## Prerequisites
@@ -172,7 +172,7 @@ The solution uses several optimizations for container environments:
 
 ### Bind mounts
 
-- `/sys/fs/cgroup:/sys/fs/cgroup:ro` required by the cgroup support in SLURM
+- `/sys/fs/cgroup:/sys/fs/cgroup:ro` for cgroup support in SLURM (currently not supported)
 - `./slurm-config:/var/slurm_config:ro` (`./slurm-config` provided as an example) enabling to provide files to be placed in `/etc/slurm/` across all nodes (see  [SLURM Configuration Changes](#slurm-configuration-changes))
 
 ## Security Considerations
@@ -197,7 +197,7 @@ The solution uses several optimizations for container environments:
 - **OpenMPI Version**: 4.1.1 with container-optimized configuration
 - **Authentication**: Munge
 - **Network**: Docker bridge network (`slurm-net`)
-- **Privileged Mode**: Required for cgroup access
+- **Privileged Mode**: Required for cgroup access (currently not supported)
 - **Image Sizes**: Base ~425MB (includes MariaDB client), Head/Worker ~446MB
   (87% reduction from source builds)
 - **Database**: MariaDB 10.9 with 64MB buffer pool for container optimization
