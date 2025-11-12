@@ -3,6 +3,7 @@ name: Build and Push Docker Images
 on:
   push:
     branches: [ main ]
+    tags: [ 'v*' ]
   workflow_dispatch:
 
 env:
@@ -35,6 +36,16 @@ jobs:
         run: |
           echo "sha_short=$(echo ${{ github.sha }} | cut -c1-7)" >> $GITHUB_OUTPUT
           echo "timestamp=$(date -u +'%Y%m%d%H%M%S')" >> $GITHUB_OUTPUT
+          
+          # Extract version from tag if this is a tag push
+          if [[ "${{ github.ref }}" == refs/tags/* ]]; then
+            VERSION=${GITHUB_REF#refs/tags/}
+            echo "version=${VERSION}" >> $GITHUB_OUTPUT
+            echo "is_tag=true" >> $GITHUB_OUTPUT
+          else
+            echo "version=latest" >> $GITHUB_OUTPUT
+            echo "is_tag=false" >> $GITHUB_OUTPUT
+          fi
 
       - name: Build and push base image
         uses: docker/build-push-action@v5
@@ -47,6 +58,7 @@ jobs:
           tags: |
             ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}-base:latest
             ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}-base:${{ steps.meta.outputs.sha_short }}
+            ${{ steps.meta.outputs.is_tag == 'true' && format('{0}/{1}-base:{2}', env.REGISTRY, env.IMAGE_PREFIX, steps.meta.outputs.version) || '' }}
 
       - name: Build and push headnode image
         uses: docker/build-push-action@v5
@@ -61,6 +73,7 @@ jobs:
           tags: |
             ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}-headnode:latest
             ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}-headnode:${{ steps.meta.outputs.sha_short }}
+            ${{ steps.meta.outputs.is_tag == 'true' && format('{0}/{1}-headnode:{2}', env.REGISTRY, env.IMAGE_PREFIX, steps.meta.outputs.version) || '' }}
 
       - name: Build and push worker image
         uses: docker/build-push-action@v5
@@ -75,6 +88,7 @@ jobs:
           tags: |
             ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}-worker:latest
             ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}-worker:${{ steps.meta.outputs.sha_short }}
+            ${{ steps.meta.outputs.is_tag == 'true' && format('{0}/{1}-worker:{2}', env.REGISTRY, env.IMAGE_PREFIX, steps.meta.outputs.version) || '' }}
 
       - name: Clean up old images
         run: |
