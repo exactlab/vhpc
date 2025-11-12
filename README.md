@@ -47,42 +47,56 @@ engineering.
 - **Shared Configuration**: All SLURM configs shared via mounted volume
 - **Non-privileged Jobs**: Proper user account setup for secure job execution
 
-## Files Structure
-
-```
-vhpc/
-├── Containerfile.slurm-base      # Base image with SLURM, OpenMPI, and MariaDB client
-├── Containerfile.slurm-headnode  # Head node with accounting and user sync
-├── Containerfile.slurm-worker    # Worker node with user sync from head node
-├── headnode-entrypoint.sh        # Headnode startup script with graceful degradation
-├── docker-compose.yml            # Multi-container orchestration (4 services, 5 volumes)
-└── slurm-config/                 # Shared SLURM configuration directory
-     ├── slurm.conf               # SLURM cluster configuration (4 CPU per worker)
-     ├── slurmdbd.conf            # SLURM database daemon configuration
-     └── cgroup.conf              # Cgroup configuration for resource management
-```
-
-## Prerequisites
-
-- Docker Engine
-- Docker Compose
-
 ## Usage
 
-### Using Pre-built Images
+### Configure SLURM
 
-The provided `docker-compose.yml` uses the latest images from GitHub Container Registry:
+Create the `slurm-config/` directory and the SLURM configuration. It must exist
+starting the cluster. You may simply copy the `slurm-config/` provided with
+this repo to your deployment directory and tweak it as necessary.
 
-```bash
-docker compose up -d
+**How it works**: On startup, all files in `./slurm-config/` (bind-mounted to
+`/var/slurm_config`) are copied to `/etc/slurm` by the headnode. `/etc/slurm`
+is then shared as a volume across all nodes, ensuring configuration
+synchronization while preventing ownership issues on the host.
+
+### (Optional) Install Extra Packages on the Virtual Cluster
+
+Provide a file `packages.yml` with extra packages to be installed by `pip`
+and/or `dnf`, with a bind mount to the headnode:
+
+```yaml
+...
+    volumes:
+      ...
+      # Optional: Mount packages.yml for runtime package installation
+      - ./packages.yml:/packages.yml:ro
+...
 ```
 
-### Building Images Locally
+A `packages.yml.example` file is provided as a starting point.
+The file is structured into two main lists:
 
-To build images locally instead of using the registry:
+- `dnf_packages`: for system packages (e.g., `htop`, `git`, `vim`)
+- `python_packages`: for Python libraries (e.g., `pydantic`, `pandas`, `requests`)
+
+Packages are persistent across container restarts and calls to the installation
+scripts are idempotent.
+
+Be mindful that:
+
+- installing large packages can increase the startup time of your containers.
+- if a package fails to install, the error will be logged, but it will not
+  prevent the container from starting.
+- packages are installed at container startup, **before** core services (like
+  SLURM) are initialized.
+
+
+### Pull up the virtual cluster
+
+At this point you can simply
 
 ```bash
-docker compose build
 docker compose up -d
 ```
 
@@ -101,11 +115,21 @@ docker compose up -d
 - **Non-privileged User**: `user` (password: `password`) - recommended for job
   submission
 
-**⚠️ Security Note**: SSH keys are automatically generated during container build
-for testing and educational purposes only. Do not use these keys in production
-environments.
+**⚠️ Security Note**: SSH keys are automatically generated during container
+build for testing and educational purposes only. Do not use these keys in
+production environments.
 
 In the example compose file, SSH is binded to the host localhost only.
+
+
+## Building the images
+
+The images are available on the [GitHub Container Registry](https://github.com/exactlab/vhpc/pkgs/container/vhpc-base). You can also build
+the images locally by running
+
+```bash
+docker compose build
+```
 
 ### Example SLURM Commands
 ```bash
@@ -155,43 +179,44 @@ chown user:user /shared/user
 
 ### Adding More Workers
 
-Uncomment and modify additional worker sections in `docker-compose.yml`, then
-update `slurm.conf`:
-```
-NodeName=slurm-worker[1-3] CPUs=4 Sockets=1 CoresPerSocket=4 ThreadsPerCore=1 State=UNKNOWN
-```
+You can add more slurm workers to the compose, using the existing ones as a
+template. Remember to also edit the `NodeName` line in
+`slurm-config/slurm.conf` accordingly.
 
-### Container Optimization
 
-The solution uses several optimizations for container environments:
-- **MPI Transport**: `OMPI_MCA_btl=tcp,self` (disables problematic fabric
-  transports)
-- **User Synchronization**: Automatic `/etc/passwd` and `/etc/group` sync from
-  head node
-- **Shared Volumes**: `shared-storage` for data, `user-sync` for account
-  information
+## Technical Details
 
-## Volumes
+### Volumes
 
 - **munge-key**: Shared Munge authentication key across all nodes
 - **shared-storage**: Persistent storage for job files and MPI binaries
 - **user-sync**: User account synchronization from head node to workers
 - **slurm-db-data**: MariaDB persistent storage for job accounting
 - **slurm-config**: shared SLURM configuration files
-  - to override the configuration, see [SLURM Configuration Changes](#slurm-configuration-changes)
+  - to override the configuration, see [Configure SLURM](#configure-slurm)
 - **venv**: shared Python virtual environment
-  - to install extra packages, see [Extra Packages](#extra-packages)
+  - to install extra packages, see [(Optional) Install Extra Packages on the Virtual Cluster](#optional-install-extra-packages-on-the-virtual-cluster)
 
-### Bind mounts
+### MPI
 
-- `/sys/fs/cgroup:/sys/fs/cgroup:ro` required by the cgroup support in SLURM
-- `./slurm-config:/var/slurm_config:ro` (`./slurm-config` provided as an example) enabling to provide files to be placed in `/etc/slurm/` across all nodes (see  [SLURM Configuration Changes](#slurm-configuration-changes))
+- **MPI Transport**: `OMPI_MCA_btl=tcp,self` (disables problematic fabric
+  transports)
+
+
+### Bind Mounts
+
+- `/sys/fs/cgroup:/sys/fs/cgroup:ro` - Required by cgroup support in SLURM
+- `./slurm-config:/var/slurm_config:ro` - SLURM configuration files shared across nodes
+- `./ssh-keys:/ssh-keys` - SSH keys for inter-node communication
+- `./packages.yml:/packages.yml:ro` - Optional extra packages configuration
 
 ## Security Considerations
 
 - Default passwords are used for demonstration purposes
 - SSH root login is enabled for testing
-  - this can be overridden in the compose file, in each service, by mounting an appropriate configuration file, e.g. in `/etc/ssh/sshd_config.d/10.NoRootNoPassword.conf`:
+  - this can be overridden in the compose file, in each service, by mounting an
+    appropriate configuration file, e.g. in
+    `/etc/ssh/sshd_config.d/10.NoRootNoPassword.conf`:
 
   ```plaintext
   PermitRootLogin no
@@ -202,7 +227,7 @@ The solution uses several optimizations for container environments:
 - Munge keys are shared via Docker volumes
 - User account sync happens automatically on container startup
 
-## Technical Details
+### Software Versions
 
 - **Base OS**: Rocky Linux 9
 - **SLURM Version**: 22.05.9 (from EPEL packages)
@@ -234,42 +259,6 @@ The solution uses several optimizations for container environments:
 - Check if `/user-sync/passwd` exists on head node
 - Restart worker containers if user changes don't propagate
 
-### SLURM Configuration Changes
-
-- Modify the files in `./slurm-config/`
-- Restart containers to apply changes: `docker compose restart`
-- Changes are automatically shared across all nodes
-
-On startup, all files in `./slurm-config/` (bind-mounted to `/var/slurm_config`) are copied to `/etc/slurm` by the headnode.
-`/etc/slurm` in turn is a volume shared across all nodes.
-This ensures the config synchronization between hosts and that no writes are done on directories on the host (since a change of ownership of the files in `/etc/slurm` is required).
-
-### Extra Packages
-
-Provide a YAML file with extra packages to be installed by `pip` and/or `dnf`, with a bind mount to the headnode:
-
-```yaml
-...
-    volumes:
-      ...
-      # Optional: Mount packages.yml for runtime package installation
-      - ./packages.yml:/packages.yml:ro
-...
-```
-
-A `packages.yml.example` file is provided as a starting point.
-The file is structured into two main lists:
-
-- `dnf_packages`: for system packages (e.g., `htop`, `git`, `vim`)
-- `python_packages`: for Python libraries (e.g., `pydantic`, `pandas`, `requests`)
-
-Packages are persistent on container restart and calls to the installation scripts are idempotent.
-
-Be mindful that:
-
-- installing large packages can increase the startup time of your containers.
-- if a package fails to install, the error will be logged, but it will not prevent the container from starting.
-- packages are installed at container startup, **before** core services (like SLURM) are initialized.
 
 ### Graceful Degradation Behavior
 - **Database Available**: Full accounting enabled, `sacct` works normally
