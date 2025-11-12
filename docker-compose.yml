@@ -1,13 +1,16 @@
+# WARNING: This Docker Compose file uses default passwords for testing only.
+# DO NOT USE IN PRODUCTION.
+
 services:
   slurm-db:
     image: mariadb:10.9
     container_name: slurm-db
     hostname: slurm-db
     environment:
-      MYSQL_ROOT_PASSWORD: rootpass
-      MYSQL_DATABASE: slurm_acct_db      # Database for SLURM accounting
-      MYSQL_USER: slurm                  # User for slurmdbd connections
-      MYSQL_PASSWORD: slurmpass
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-rootpass}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-slurm_acct_db}      # Database for SLURM accounting
+      MYSQL_USER: ${MYSQL_USER:-slurm}                  # User for slurmdbd connections
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-slurmpass}
     volumes:
       - slurm-db-data:/var/lib/mysql     # Persistent storage for accounting data
     networks:
@@ -64,7 +67,7 @@ services:
     networks:
       - slurm-net
 
-  slurm-worker1:
+  slurm-worker-common: &slurm-worker-common
     image: ghcr.io/exactlab/vhpc-worker:latest
     pull_policy: missing
     build:
@@ -74,11 +77,7 @@ services:
         - BASE_IMAGE=vhpc-base:latest
       cache_from:
         - vhpc-base:latest
-    container_name: slurm-worker1
-    hostname: slurm-worker1
     privileged: true
-    ports:
-      - "127.0.0.1:2223:22"
     volumes:
       - munge-key:/etc/munge:ro
       - slurm-config:/etc/slurm # Shared SLURM configuration volume
@@ -97,38 +96,19 @@ services:
     networks:
       - slurm-net
 
+  slurm-worker1:
+    <<: *slurm-worker-common
+    container_name: slurm-worker1
+    hostname: slurm-worker1
+    ports:
+      - "127.0.0.1:2223:22"
+
   slurm-worker2:
-    image: ghcr.io/exactlab/vhpc-worker:latest
-    pull_policy: missing
-    build:
-      context: .
-      dockerfile: Containerfile.slurm-worker
-      args:
-        - BASE_IMAGE=vhpc-base:latest
-      cache_from:
-        - vhpc-base:latest
+    <<: *slurm-worker-common
     container_name: slurm-worker2
     hostname: slurm-worker2
-    privileged: true
     ports:
       - "127.0.0.1:2224:22"
-    volumes:
-      - munge-key:/etc/munge:ro
-      - slurm-config:/etc/slurm # Shared SLURM configuration volume
-      - /sys/fs/cgroup:/sys/fs/cgroup:ro
-      - shared-storage:/shared
-      - user-sync:/user-sync:ro
-      - ./ssh-keys:/ssh-keys                # Project-local SSH keys for authentication
-      - venv:/opt/venv:ro
-      - ./packages.yml:/packages.yml:ro
-      - home:/home
-      - scratch:/scratch
-    depends_on:
-      slurm-headnode:
-        condition: service_healthy
-        restart: true
-    networks:
-      - slurm-net
 
 volumes:
   munge-key:
