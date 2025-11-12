@@ -59,16 +59,15 @@ vhpc/
 
 ### Using Pre-built Images
 
-The provided `docker-compose.yml` pulls the latest images from GitHub Container Registry:
+The provided `docker-compose.yml` uses the latest images from GitHub Container Registry:
 
 ```bash
-docker compose pull
 docker compose up -d
 ```
 
-### Locally Building Images
+### Building Images Locally
 
-For local development purposes, use this:
+To build images locally instead of using the registry:
 
 ```bash
 docker compose build
