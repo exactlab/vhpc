@@ -6,6 +6,18 @@ Rocky Linux 9. This project creates a lean, production-ready multi-container
 environment with graceful degradation, ensuring the cluster remains operational
 even if the accounting database is unavailable.
 
+## About eXact lab
+
+This project was open-sourced by [eXact lab S.r.l.](https://exact-lab.it), a
+consultancy specializing in scientific and high-performance computing
+solutions. We help organizations optimize their computational workflows,
+implement scalable HPC infrastructure, and accelerate scientific research
+through tailored technology solutions.
+
+**Need HPC expertise?** [Contact us](mailto:info@exact-lab.it) for consulting
+services in scientific computing, cluster optimization, and performance
+engineering.
+
 ## Architecture
 
 - **Head Node**: Runs slurmctld daemon, manages cluster, provides user
@@ -271,4 +283,7 @@ Be mindful that:
 
 ## License
 
-This project is for educational and testing purposes.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE)
+file for details.
+
+Copyright (c) 2025 [eXact lab S.r.l.](https://exact-lab.it)
