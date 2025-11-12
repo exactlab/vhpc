@@ -17,7 +17,7 @@ services:
     restart: unless-stopped              # Auto-restart for high availability
 
   vhpc-base-image:
-    image: ghcr.io/exactlab/vhpc-headnode:latest
+    image: ghcr.io/exactlab/vhpc-base:latest
     pull_policy: missing
     build:
       context: .
@@ -32,7 +32,7 @@ services:
       context: .
       dockerfile: Containerfile.slurm-headnode
       args:
-        - BASE_IMAGE=ghcr.io/exactlab/vhpc-headnode:latest
+        - BASE_IMAGE=ghcr.io/exactlab/vhpc-base:latest
       cache_from:
         - vhpc-base:latest
     container_name: slurm-headnode0
@@ -49,9 +49,12 @@ services:
       - /sys/fs/cgroup:/sys/fs/cgroup:ro    # Host cgroups for resource management
       - shared-storage:/shared              # Shared storage for job data and MPI binaries
       - user-sync:/user-sync                # User account synchronization
+      - ./ssh-keys:/ssh-keys                # Project-local SSH keys for authentication
       # Optional: Mount packages.yml for runtime package installation
       - venv:/opt/venv
       - ./packages.yml:/packages.yml:ro
+      - home:/home
+      - scratch:/scratch
     healthcheck:
       test: sinfo
       interval: 30s
@@ -82,8 +85,11 @@ services:
       - /sys/fs/cgroup:/sys/fs/cgroup:ro
       - shared-storage:/shared
       - user-sync:/user-sync:ro
+      - ./ssh-keys:/ssh-keys                # Project-local SSH keys for authentication
       - venv:/opt/venv:ro
       - ./packages.yml:/packages.yml:ro
+      - home:/home
+      - scratch:/scratch
     depends_on:
       slurm-headnode:
         condition: service_healthy
@@ -112,8 +118,11 @@ services:
       - /sys/fs/cgroup:/sys/fs/cgroup:ro
       - shared-storage:/shared
       - user-sync:/user-sync:ro
+      - ./ssh-keys:/ssh-keys                # Project-local SSH keys for authentication
       - venv:/opt/venv:ro
       - ./packages.yml:/packages.yml:ro
+      - home:/home
+      - scratch:/scratch
     depends_on:
       slurm-headnode:
         condition: service_healthy
@@ -128,6 +137,8 @@ volumes:
   slurm-db-data:
   slurm-config:
   venv:
+  home:
+  scratch:
 
 networks:
   slurm-net:

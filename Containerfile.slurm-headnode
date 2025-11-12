@@ -26,8 +26,6 @@ RUN mkdir -p /var/log/munge && \
 RUN mkdir -p /var/spool/slurmd && \
     chown slurm:slurm /var/spool/slurmd
 
-# Add unprivileged user
-RUN useradd -m user && echo "user:password" | chpasswd
 
 # Enable SSH root login and start SSHD
 RUN ssh-keygen -A 
