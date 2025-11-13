@@ -84,6 +84,11 @@ Package installation is now handled directly in the shell entrypoint script,
 making installation progress visible via `docker logs -f`. Packages are
 persistent across container restarts and installation is idempotent.
 
+**Caching**: RPM packages are cached in a shared volume (`rpm-cache`) to avoid
+re-downloading the same packages when starting multiple containers or
+restarting them. The first container downloads and caches packages; subsequent
+containers reuse the cached files.
+
 **Note**: The entrypoint only adds packages, never removes them. If you need to
 remove packages or make deeper changes, enter the container manually with
 `docker exec` and use `dnf remove` or `pip uninstall` as needed.
@@ -201,6 +206,7 @@ template. Remember to also edit the `NodeName` line in
   - to override the configuration, see [Configure SLURM](#configure-slurm)
 - **venv**: shared Python virtual environment
   - to install extra packages, see [(Optional) Install Extra Packages on the Virtual Cluster](#optional-install-extra-packages-on-the-virtual-cluster)
+- **rpm-cache**: shared DNF package cache to avoid re-downloading packages across containers
 
 ### MPI
 
