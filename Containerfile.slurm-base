@@ -7,26 +7,27 @@ RUN dnf makecache && \
     dnf install -y epel-release && \
     dnf clean all
 
+RUN curl -O "http://repos.openhpc.community/OpenHPC/3/EL_9/x86_64/ohpc-release-3-1.el9.x86_64.rpm"
+RUN dnf install -y ohpc-release-3-1.el9.x86_64.rpm && dnf makecache
+
 # Install Slurm, MPI, and dependencies from packages
 RUN dnf install -y \
     iputils \
-    slurm \
-    slurm-slurmctld \
-    slurm-slurmd \
-    slurm-slurmdbd \
+    ohpc-slurm-client \
+    ohpc-slurm-server \
     munge \
     munge-libs \
     python3.12 \
     python3.12-pip \
-    openmpi \
-    openmpi-devel \
-    gcc \
-    gcc-c++ \
+    gnu15-compilers-ohpc \
+    openmpi5-gnu15-ohpc \
     mariadb \
     && dnf clean all
+RUN dnf install -y openssh openssh-server
 
 # Create slurm user and directories with correct permissions
-RUN useradd -r -s /bin/false slurm && \
+RUN useradd -r -s /bin/false slurm || true
+RUN \
     mkdir -p /var/spool/slurm /var/log/slurm /run/slurm /var/spool/slurmd && \
     chown -R slurm:slurm /var/spool/slurm /var/log/slurm /run/slurm /var/spool/slurmd
 
