@@ -6,8 +6,8 @@ parse_packages() {
     local packages_file="$1"
     local package_type="$2"
     
-    if [[ "$package_type" != "rpm_packages" && "$package_type" != "python_packages" ]]; then
-        echo "Error: package_type must be 'rpm_packages' or 'python_packages'" >&2
+    if [[ "$package_type" != "rpm_packages" && "$package_type" != "python_packages" && "$package_type" != "extra_commands" ]]; then
+        echo "Error: package_type must be 'rpm_packages', 'python_packages', or 'extra_commands'" >&2
         return 1
     fi
     
@@ -15,8 +15,11 @@ parse_packages() {
 import yaml
 res = yaml.safe_load(open('$packages_file'))
 if res:
-    packages = res.get('$package_type', [])
-    print(' '.join(packages))
+    items = res.get('$package_type', [])
+    if '$package_type' == 'extra_commands':
+        print('\n'.join(items))
+    else:
+        print(' '.join(items))
 "
     /opt/venv/bin/python -c "$parse_script"
 }
@@ -44,6 +47,16 @@ install_packages() {
         echo "[PACKAGE-INSTALLER] Package installation completed"
     else
         echo "[PACKAGE-INSTALLER] No packages.yml found, skipping package installation"
+    fi
+}
+
+execute_extra_commands() {
+    if [ -f "/packages.yml" ]; then
+        extra_commands=$(parse_packages "/packages.yml" "extra_commands")
+        for command in $extra_commands; do
+            echo "[EXTRA-COMMANDS] Executing: $command"
+            $command
+        done
     fi
 }
 
@@ -79,6 +92,7 @@ headnode_startup() {
     echo "=== HEADNODE STARTUP ==="
     
     install_packages rpm py
+    execute_extra_commands
 
     setup_ssh
 
@@ -135,6 +149,7 @@ worker_startup() {
     
     # Only install dnf packages on workers (python packages are in shared venv)
     install_packages rpm
+    execute_extra_commands
 
     echo "Synchronizing users from headnode..."
     if [ -f /user-sync/passwd ]; then

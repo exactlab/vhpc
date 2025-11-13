@@ -75,14 +75,16 @@ and/or `dnf`, with a bind mount to both headnode and worker nodes:
 ```
 
 A `packages.yml.example` file is provided as a starting point.
-The file is structured into two main lists:
+The file is structured into three main lists:
 
 - `rpm_packages`: for system packages (e.g., `htop`, `git`, `vim`)
 - `python_packages`: for Python libraries (e.g., `pydantic`, `pandas`, `requests`)
+- `extra_commands`: for arbitrary shell commands executed during startup
 
-Package installation is now handled directly in the shell entrypoint script,
-making installation progress visible via `docker logs -f`. Packages are
-persistent across container restarts and installation is idempotent.
+Package installation and extra commands are handled directly in the shell 
+entrypoint script, making installation progress visible via `docker logs -f`. 
+Packages are persistent across container restarts and installation is 
+idempotent.
 
 **Caching**: RPM packages are cached in a shared volume (`rpm-cache`) to avoid
 re-downloading the same packages when starting multiple containers or
@@ -98,8 +100,9 @@ Be mindful that:
 - installing large packages can increase the startup time of your containers.
 - if a package fails to install, the error will be logged, but it will not
   prevent the container from starting.
-- packages are installed at container startup, **before** core services (like
-  SLURM) are initialized.
+- if an extra command fails, it will cause the container startup to fail.
+- packages and extra commands are executed at container startup, **before** 
+  core services (like SLURM) are initialized.
 
 
 ### Pull up the virtual cluster
