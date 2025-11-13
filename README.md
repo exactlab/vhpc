@@ -218,7 +218,7 @@ template. Remember to also edit the `NodeName` line in
 - **user-sync**: User account synchronization from head node to workers
 - **slurm-db-data**: MariaDB persistent storage for job accounting
 - **slurm-config**: shared SLURM configuration files
-  - to override the configuration, see [Configure SLURM](#configure-slurm)
+  - to override the configuration, see [SLURM Configuration](#slurm-configuration)
 - **venv**: shared Python virtual environment
   - to install extra packages, see [(Optional) Install Extra Packages on the
     Virtual Cluster](#optional-install-extra-packages-on-the-virtual-cluster)
