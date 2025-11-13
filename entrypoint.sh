@@ -57,14 +57,16 @@ setup_ssh() {
     /usr/sbin/sshd
 }
 
-setup_munge() {
+setup_munge_permissions() {
     echo "Fixing permissions..."
     chown -R munge:munge /var/log/munge /var/run/munge /etc/munge
     chmod 0700 /var/log/munge
     chmod 0755 /var/run/munge
     chmod 0700 /etc/munge
     chmod 0400 /etc/munge/munge.key
+}
 
+start_munge() {
     echo "Starting munged..."
     su -s /bin/bash munge -c "/usr/sbin/munged"
 
@@ -96,7 +98,8 @@ headnode_startup() {
     chown root:root /shared
     chmod 777 /shared
 
-    setup_munge
+    setup_munge_permissions
+    start_munge
 
     echo "Attempting to start slurmdbd..."
     DB_TIMEOUT=120
@@ -141,7 +144,7 @@ worker_startup() {
     fi
 
     setup_ssh
-    setup_munge
+    start_munge
 
     echo "Starting slurmd..."
     exec slurmd -D -f ${SLURM_CONF}
