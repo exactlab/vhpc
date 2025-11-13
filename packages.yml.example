@@ -8,14 +8,14 @@
 #   4. Start containers: docker compose up
 #
 # SCHEMA VALIDATION:
-#   - Both dnf_packages and python_packages are optional
+#   - Both rpm_packages and python_packages are optional
 #   - Each must be a list of strings (package names)
 #   - Empty lists are valid
 #   - Invalid package names will cause installation to fail
 
 # Rocky Linux packages to install via dnf
 # These packages are installed system-wide and available to all users
-dnf_packages:
+rpm_packages:
   - htop              
 
 # Python packages to install via pip3
