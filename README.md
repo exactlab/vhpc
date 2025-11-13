@@ -79,7 +79,7 @@ The file is structured into three main lists:
 
 - `rpm_packages`: for system packages (e.g., `htop`, `git`, `vim`)
 - `python_packages`: for Python libraries (e.g., `pydantic`, `pandas`, `requests`)
-- `extra_commands`: for arbitrary shell commands executed during startup
+- `extra_commands`: for arbitrary shell commands executed as root during startup
 
 Package installation and extra commands are handled directly in the shell 
 entrypoint script, making installation progress visible via `docker logs -f`. 

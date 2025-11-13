@@ -25,7 +25,7 @@ python_packages:
   - pydantic
 
 # Extra commands to execute during container startup
-# These commands are executed after package installation
+# These commands are executed after package installation as root user
 extra_commands:
   - "echo 'Custom startup command executed'"
   - "mkdir -p /tmp/custom"
