@@ -18,7 +18,7 @@ if res:
     packages = res.get('$package_type', [])
     print(' '.join(packages))
 "
-    python -c "$parse_script"
+    /opt/venv/bin/python -c "$parse_script"
 }
 
 install_packages() {
@@ -33,12 +33,12 @@ install_packages() {
         
         if [[ " $package_types " == *" rpm "* ]] && [ -n "$rpm_packages" ]; then
             echo "[PACKAGE-INSTALLER] Installing rpm packages: $rpm_packages"
-            dnf install -y $rpm_packages || echo "[PACKAGE-INSTALLER] Some rpm packages failed to install"
+            dnf install -y --setopt=keepcache=1 $rpm_packages
         fi
         
         if [[ " $package_types " == *" py "* ]] && [ -n "$python_packages" ]; then
             echo "[PACKAGE-INSTALLER] Installing python packages: $python_packages"
-            /opt/venv/bin/pip install $python_packages || echo "[PACKAGE-INSTALLER] Some python packages failed to install"
+            /opt/venv/bin/pip install $python_packages
         fi
         
         echo "[PACKAGE-INSTALLER] Package installation completed"

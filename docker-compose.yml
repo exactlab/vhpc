@@ -55,6 +55,7 @@ services:
       - ./ssh-keys:/ssh-keys                # Project-local SSH keys for authentication
       # Optional: Mount packages.yml for runtime package installation
       - venv:/opt/venv
+      - rpm-cache:/var/cache/dnf
       - ./packages.yml:/packages.yml:ro
       - home:/home
       - scratch:/scratch
@@ -86,6 +87,7 @@ services:
       - user-sync:/user-sync:ro
       - ./ssh-keys:/ssh-keys                # Project-local SSH keys for authentication
       - venv:/opt/venv:ro
+      - rpm-cache:/var/cache/dnf
       - ./packages.yml:/packages.yml:ro
       - home:/home
       - scratch:/scratch
@@ -117,6 +119,7 @@ volumes:
   slurm-db-data:
   slurm-config:
   venv:
+  rpm-cache:
   home:
   scratch:
 
