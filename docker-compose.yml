@@ -20,7 +20,7 @@ services:
     restart: unless-stopped              # Auto-restart for high availability
 
   vhpc-base-image:
-    image: ghcr.io/exactlab/vhpc-base:v0.1.0
+    image: ${REGISTRY}vhpc-base:${VERSION}
     pull_policy: missing
     build:
       context: .
@@ -29,13 +29,13 @@ services:
       replicas: 0
 
   slurm-headnode:
-    image: ghcr.io/exactlab/vhpc-headnode:v0.1.0
+    image: ${REGISTRY}vhpc-headnode:${VERSION}
     pull_policy: missing
     build:
       context: .
       dockerfile: Containerfile.slurm-headnode
       args:
-        - BASE_IMAGE=ghcr.io/exactlab/vhpc-base:v0.1.0
+        - BASE_IMAGE=${REGISTRY}vhpc-base:${VERSION}
       cache_from:
         - vhpc-base:latest
     container_name: slurm-headnode0
@@ -68,13 +68,13 @@ services:
       - slurm-net
 
   slurm-worker-common: &slurm-worker-common
-    image: ghcr.io/exactlab/vhpc-worker:v0.1.0
+    image: ${REGISTRY}vhpc-worker:${VERSION}
     pull_policy: missing
     build:
       context: .
       dockerfile: Containerfile.slurm-worker
       args:
-        - BASE_IMAGE=vhpc-base:latest
+        - BASE_IMAGE=${REGISTRY}vhpc-base:${VERSION}
       cache_from:
         - vhpc-base:latest
     privileged: true
