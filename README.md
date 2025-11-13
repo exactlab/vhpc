@@ -63,7 +63,7 @@ synchronization while preventing ownership issues on the host.
 ### (Optional) Install Extra Packages on the Virtual Cluster
 
 Provide a file `packages.yml` with extra packages to be installed by `pip`
-and/or `dnf`, with a bind mount to the headnode:
+and/or `dnf`, with a bind mount to both headnode and worker nodes:
 
 ```yaml
 ...
@@ -77,11 +77,16 @@ and/or `dnf`, with a bind mount to the headnode:
 A `packages.yml.example` file is provided as a starting point.
 The file is structured into two main lists:
 
-- `dnf_packages`: for system packages (e.g., `htop`, `git`, `vim`)
+- `rpm_packages`: for system packages (e.g., `htop`, `git`, `vim`)
 - `python_packages`: for Python libraries (e.g., `pydantic`, `pandas`, `requests`)
 
-Packages are persistent across container restarts and calls to the installation
-scripts are idempotent.
+Package installation is now handled directly in the shell entrypoint script,
+making installation progress visible via `docker logs -f`. Packages are
+persistent across container restarts and installation is idempotent.
+
+**Note**: The entrypoint only adds packages, never removes them. If you need to
+remove packages or make deeper changes, enter the container manually with
+`docker exec` and use `dnf remove` or `pip uninstall` as needed.
 
 Be mindful that:
 
