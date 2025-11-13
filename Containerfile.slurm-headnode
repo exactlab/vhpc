@@ -3,7 +3,6 @@ FROM ${BASE_IMAGE}
 
 # Install additional runtime dependencies
 RUN dnf install -y \
-    openssh-server \
     passwd \
     which && \
     dnf clean all

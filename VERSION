@@ -1,0 +1,3 @@
+VHPC_VERSION=v0.1-dev
+# REGISTRY=ghcr.io/exactlab/
+REGISTRY=
