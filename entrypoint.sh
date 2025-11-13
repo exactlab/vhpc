@@ -6,8 +6,8 @@ parse_packages() {
     local packages_file="$1"
     local package_type="$2"
     
-    if [[ "$package_type" != "dnf_packages" && "$package_type" != "python_packages" ]]; then
-        echo "Error: package_type must be 'dnf_packages' or 'python_packages'" >&2
+    if [[ "$package_type" != "rpm_packages" && "$package_type" != "python_packages" ]]; then
+        echo "Error: package_type must be 'rpm_packages' or 'python_packages'" >&2
         return 1
     fi
     
@@ -22,22 +22,21 @@ if res:
 }
 
 install_packages() {
-    local install_dnf="${1:-true}"
-    local install_python="${2:-true}"
+    local package_types="$*"
     
     /opt/venv/bin/python -m pip install pyyaml
     echo "Installing additional packages if packages.yml is provided..."
     if [ -f "/packages.yml" ]; then
         echo "[PACKAGE-INSTALLER] Parsing package lists..."
-        dnf_packages=$(parse_packages "/packages.yml" "dnf_packages")
+        rpm_packages=$(parse_packages "/packages.yml" "rpm_packages")
         python_packages=$(parse_packages "/packages.yml" "python_packages")
         
-        if [ "$install_dnf" = "true" ] && [ -n "$dnf_packages" ]; then
-            echo "[PACKAGE-INSTALLER] Installing dnf packages: $dnf_packages"
-            dnf install -y $dnf_packages || echo "[PACKAGE-INSTALLER] Some dnf packages failed to install"
+        if [[ " $package_types " == *" rpm "* ]] && [ -n "$rpm_packages" ]; then
+            echo "[PACKAGE-INSTALLER] Installing rpm packages: $rpm_packages"
+            dnf install -y $rpm_packages || echo "[PACKAGE-INSTALLER] Some rpm packages failed to install"
         fi
         
-        if [ "$install_python" = "true" ] && [ -n "$python_packages" ]; then
+        if [[ " $package_types " == *" py "* ]] && [ -n "$python_packages" ]; then
             echo "[PACKAGE-INSTALLER] Installing python packages: $python_packages"
             /opt/venv/bin/pip install $python_packages || echo "[PACKAGE-INSTALLER] Some python packages failed to install"
         fi
@@ -77,7 +76,7 @@ setup_munge() {
 headnode_startup() {
     echo "=== HEADNODE STARTUP ==="
     
-    install_packages true true
+    install_packages rpm py
 
     setup_ssh
 
@@ -132,7 +131,7 @@ worker_startup() {
     echo "=== WORKER STARTUP ==="
     
     # Only install dnf packages on workers (python packages are in shared venv)
-    install_packages true false
+    install_packages rpm
 
     echo "Synchronizing users from headnode..."
     if [ -f /user-sync/passwd ]; then
