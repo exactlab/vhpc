@@ -30,6 +30,9 @@ RUN cat << EOF > /etc/ssh/sshd_config.d/99.PasswordAuthentication.conf
 PasswordAuthentication yes
 EOF
 
+# Worker receives SLURM config via slurm-config volume mount from headnode
+RUN chown -R slurm:slurm /etc/slurm
+
 # Expose SSH
 EXPOSE 22
 

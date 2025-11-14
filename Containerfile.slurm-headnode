@@ -38,10 +38,11 @@ RUN cat << EOF > /etc/ssh/sshd_config.d/99.PasswordAuthentication.conf
 PasswordAuthentication yes
 EOF
 
-# NOTE:
-# /etc/slurm is mounted as a volume via docker-compose
+# Copy default SLURM configuration to staging area
+# This allows the default config to be available even when host overrides are not mounted
+COPY slurm-config/ /var/slurm_config/
 
-RUN chown -R slurm:slurm /etc/slurm /var/spool/slurm /var/log/slurm
+RUN chown -R slurm:slurm /var/slurm_config /etc/slurm /var/spool/slurm /var/log/slurm
 
 # Expose SSH
 EXPOSE 22

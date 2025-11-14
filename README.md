@@ -49,16 +49,27 @@ engineering.
 
 ## Usage
 
-### Configure SLURM
+### SLURM Configuration
 
-Create the `slurm-config/` directory and the SLURM configuration. It must exist
-starting the cluster. You may simply copy the `slurm-config/` provided with
-this repo to your deployment directory and tweak it as necessary.
+**Default Configuration**: The cluster comes with a pre-configured SLURM setup
+that works out of the box. The default configuration is baked into the Docker
+images, so you can start the cluster immediately without any additional setup.
 
-**How it works**: On startup, all files in `./slurm-config/` (bind-mounted to
-`/var/slurm_config`) are copied to `/etc/slurm` by the headnode. `/etc/slurm`
-is then shared as a volume across all nodes, ensuring configuration
-synchronization while preventing ownership issues on the host.
+**Custom Configuration (Optional)**: To override the default SLURM configuration:
+
+1. Uncomment the volume mount in `docker-compose.yml`:
+   ```yaml
+   # - ./slurm-config:/var/slurm_config:ro # Host-provided config override (mounted to staging area)
+   ```
+
+2. Modify the configuration files in `./slurm-config/` as needed
+3. Restart the cluster: `docker-compose down && docker-compose up -d`
+
+**How it works**: The system uses a double mount strategy:
+- Default config is baked into images at `/var/slurm_config/`
+- Optional host override mounts to `/var/slurm_config/` (staging area)
+- Headnode entrypoint copies config from staging to `/etc/slurm/`
+- `/etc/slurm/` is shared via volume across all cluster nodes
 
 ### (Optional) Install Extra Packages on the Virtual Cluster
 
@@ -78,12 +89,13 @@ A `packages.yml.example` file is provided as a starting point.
 The file is structured into three main lists:
 
 - `rpm_packages`: for system packages (e.g., `htop`, `git`, `vim`)
-- `python_packages`: for Python libraries (e.g., `pydantic`, `pandas`, `requests`)
-- `extra_commands`: for arbitrary shell commands executed as root during startup
+- `python_packages`: for Python libraries (e.g., `pandas`, `requests`)
+- `extra_commands`: for arbitrary shell commands executed as root during
+  startup
 
-Package installation and extra commands are handled directly in the shell 
-entrypoint script, making installation progress visible via `docker logs -f`. 
-Packages are persistent across container restarts and installation is 
+Package installation and extra commands are handled directly in the shell
+entrypoint script, making installation progress visible via `docker logs -f`.
+Packages are persistent across container restarts and installation is
 idempotent.
 
 **Caching**: RPM packages are cached in a shared volume (`rpm-cache`) to avoid
@@ -101,7 +113,7 @@ Be mindful that:
 - if a package fails to install, the error will be logged, but it will not
   prevent the container from starting.
 - if an extra command fails, it will cause the container startup to fail.
-- packages and extra commands are executed at container startup, **before** 
+- packages and extra commands are executed at container startup, **before**
   core services (like SLURM) are initialized.
 
 
@@ -206,10 +218,12 @@ template. Remember to also edit the `NodeName` line in
 - **user-sync**: User account synchronization from head node to workers
 - **slurm-db-data**: MariaDB persistent storage for job accounting
 - **slurm-config**: shared SLURM configuration files
-  - to override the configuration, see [Configure SLURM](#configure-slurm)
+  - to override the configuration, see [SLURM Configuration](#slurm-configuration)
 - **venv**: shared Python virtual environment
-  - to install extra packages, see [(Optional) Install Extra Packages on the Virtual Cluster](#optional-install-extra-packages-on-the-virtual-cluster)
-- **rpm-cache**: shared DNF package cache to avoid re-downloading packages across containers
+  - to install extra packages, see [(Optional) Install Extra Packages on the
+    Virtual Cluster](#optional-install-extra-packages-on-the-virtual-cluster)
+- **rpm-cache**: shared DNF package cache to avoid re-downloading packages
+  across containers
 
 ### MPI
 
@@ -220,7 +234,8 @@ template. Remember to also edit the `NodeName` line in
 ### Bind Mounts
 
 - `/sys/fs/cgroup:/sys/fs/cgroup:ro` - Required by cgroup support in SLURM
-- `./slurm-config:/var/slurm_config:ro` - SLURM configuration files shared across nodes
+- `./slurm-config:/var/slurm_config:ro` - Optional SLURM configuration override
+  (commented by default)
 - `./ssh-keys:/ssh-keys` - SSH keys for inter-node communication
 - `./packages.yml:/packages.yml:ro` - Optional extra packages configuration
 
