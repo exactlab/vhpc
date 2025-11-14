@@ -2,6 +2,48 @@
 set -e
 
 # Shared utility functions
+acquire_dnf_lock() {
+    local lockfile="/var/cache/dnf/.container_lock"
+    local timeout=300  # 5 minutes
+    local elapsed=0
+    local interval=2
+    
+    echo "[LOCK] Attempting to acquire DNF lock..."
+    while [ $elapsed -lt $timeout ]; do
+        if (set -C; echo $$ > "$lockfile") 2>/dev/null; then
+            echo "[LOCK] DNF lock acquired by PID $$"
+            return 0
+        fi
+        
+        if [ -f "$lockfile" ]; then
+            local lock_pid=$(cat "$lockfile" 2>/dev/null || echo "")
+            if [ -n "$lock_pid" ] && ! kill -0 "$lock_pid" 2>/dev/null; then
+                echo "[LOCK] Stale lock detected, removing..."
+                rm -f "$lockfile" 2>/dev/null || true
+                continue
+            fi
+        fi
+        
+        echo "[LOCK] Waiting for DNF lock (${elapsed}s/${timeout}s)..."
+        sleep $interval
+        elapsed=$((elapsed + interval))
+    done
+    
+    echo "[LOCK] Failed to acquire DNF lock after ${timeout}s"
+    return 1
+}
+
+release_dnf_lock() {
+    local lockfile="/var/cache/dnf/.container_lock"
+    if [ -f "$lockfile" ]; then
+        local lock_pid=$(cat "$lockfile" 2>/dev/null || echo "")
+        if [ "$lock_pid" = "$$" ]; then
+            rm -f "$lockfile"
+            echo "[LOCK] DNF lock released by PID $$"
+        fi
+    fi
+}
+
 parse_packages() {
     local packages_file="$1"
     local package_type="$2"
@@ -36,7 +78,15 @@ install_packages() {
         
         if [[ " $package_types " == *" rpm "* ]] && [ -n "$rpm_packages" ]; then
             echo "[PACKAGE-INSTALLER] Installing rpm packages: $rpm_packages"
-            dnf install -y --setopt=keepcache=1 $rpm_packages
+            if acquire_dnf_lock; then
+                trap 'release_dnf_lock' EXIT ERR
+                dnf install -y --setopt=keepcache=1 $rpm_packages
+                release_dnf_lock
+                trap - EXIT ERR
+            else
+                echo "[PACKAGE-INSTALLER] Failed to acquire lock for DNF operations"
+                exit 1
+            fi
         fi
         
         if [[ " $package_types " == *" py "* ]] && [ -n "$python_packages" ]; then
