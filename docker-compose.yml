@@ -74,7 +74,7 @@ services:
     networks:
       - slurm-net
 
-  slurm-worker-common: &slurm-worker-common
+  x-slurm-worker-common: &slurm-worker-common
     image: ${REGISTRY}vhpc-worker:${VERSION}
     pull_policy: missing
     build:
