@@ -7,14 +7,14 @@ acquire_dnf_lock() {
     local timeout=300  # 5 minutes
     local elapsed=0
     local interval=2
-    
+
     echo "[LOCK] Attempting to acquire DNF lock..."
     while [ $elapsed -lt $timeout ]; do
         if (set -C; echo $$ > "$lockfile") 2>/dev/null; then
             echo "[LOCK] DNF lock acquired by PID $$"
             return 0
         fi
-        
+
         if [ -f "$lockfile" ]; then
             local lock_pid=$(cat "$lockfile" 2>/dev/null || echo "")
             if [ -n "$lock_pid" ] && ! kill -0 "$lock_pid" 2>/dev/null; then
@@ -23,12 +23,12 @@ acquire_dnf_lock() {
                 continue
             fi
         fi
-        
+
         echo "[LOCK] Waiting for DNF lock (${elapsed}s/${timeout}s)..."
         sleep $interval
         elapsed=$((elapsed + interval))
     done
-    
+
     echo "[LOCK] Failed to acquire DNF lock after ${timeout}s"
     return 1
 }
@@ -47,12 +47,12 @@ release_dnf_lock() {
 parse_packages() {
     local packages_file="$1"
     local package_type="$2"
-    
+
     if [[ "$package_type" != "rpm_packages" && "$package_type" != "python_packages" && "$package_type" != "extra_commands" ]]; then
         echo "Error: package_type must be 'rpm_packages', 'python_packages', or 'extra_commands'" >&2
         return 1
     fi
-    
+
     local parse_script="
 import yaml
 res = yaml.safe_load(open('$packages_file'))
@@ -68,14 +68,14 @@ if res:
 
 install_packages() {
     local package_types="$*"
-    
+
     /opt/venv/bin/python -m pip install pyyaml
     echo "Installing additional packages if packages.yml is provided..."
     if [ -f "/packages.yml" ]; then
         echo "[PACKAGE-INSTALLER] Parsing package lists..."
         rpm_packages=$(parse_packages "/packages.yml" "rpm_packages")
         python_packages=$(parse_packages "/packages.yml" "python_packages")
-        
+
         if [[ " $package_types " == *" rpm "* ]] && [ -n "$rpm_packages" ]; then
             echo "[PACKAGE-INSTALLER] Installing rpm packages: $rpm_packages"
             if acquire_dnf_lock; then
@@ -88,12 +88,12 @@ install_packages() {
                 exit 1
             fi
         fi
-        
+
         if [[ " $package_types " == *" py "* ]] && [ -n "$python_packages" ]; then
             echo "[PACKAGE-INSTALLER] Installing python packages: $python_packages"
             /opt/venv/bin/pip install $python_packages
         fi
-        
+
         echo "[PACKAGE-INSTALLER] Package installation completed"
     else
         echo "[PACKAGE-INSTALLER] No packages.yml found, skipping package installation"
@@ -103,10 +103,13 @@ install_packages() {
 execute_extra_commands() {
     if [ -f "/packages.yml" ]; then
         extra_commands=$(parse_packages "/packages.yml" "extra_commands")
+        ORIG_IFS="$IFS"
+        IFS=$'\n'
         for command in $extra_commands; do
             echo "[EXTRA-COMMANDS] Executing: $command"
-            $command
+            eval $command
         done
+        IFS="$ORIG_IFS"
     fi
 }
 
@@ -140,7 +143,7 @@ start_munge() {
 # Headnode-specific functions
 headnode_startup() {
     echo "=== HEADNODE STARTUP ==="
-    
+
     install_packages rpm py
     execute_extra_commands
 
@@ -173,7 +176,7 @@ headnode_startup() {
             sleep 2
         done
     ' 2>/dev/null
-    
+
     if [ $? -eq 0 ]; then
         echo "Database available, enabling accounting and starting slurmdbd..."
         sed -i 's/#AccountingStorageType=/AccountingStorageType=/' /etc/slurm/slurm.conf
@@ -193,10 +196,10 @@ headnode_startup() {
     fi
 }
 
-# Worker-specific functions  
+# Worker-specific functions
 worker_startup() {
     echo "=== WORKER STARTUP ==="
-    
+
     # Only install dnf packages on workers (python packages are in shared venv)
     install_packages rpm
     execute_extra_commands
