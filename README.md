@@ -103,6 +103,12 @@ re-downloading the same packages when starting multiple containers or
 restarting them. The first container downloads and caches packages; subsequent
 containers reuse the cached files.
 
+**Concurrency Control**: To prevent DNF lock contention when multiple
+containers share the same cache, a file-based locking mechanism coordinates
+package installation operations. The lock file (`/var/cache/dnf/.container_lock`)
+ensures only one container can run DNF operations at a time. The system includes
+stale lock detection and automatic cleanup for containers that exit unexpectedly.
+
 **Note**: The entrypoint only adds packages, never removes them. If you need to
 remove packages or make deeper changes, enter the container manually with
 `docker exec` and use `dnf remove` or `pip uninstall` as needed.
