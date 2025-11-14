@@ -8,24 +8,32 @@
 #   4. Start containers: docker compose up
 #
 # SCHEMA VALIDATION:
-#   - Both dnf_packages and python_packages are optional
-#   - Each must be a list of strings (package names)
+#   - rpm_packages, python_packages, and extra_commands are optional
+#   - Each must be a list of strings
 #   - Empty lists are valid
 #   - Invalid package names will cause installation to fail
+#   - Invalid commands will cause startup to fail
 
 # Rocky Linux packages to install via dnf
 # These packages are installed system-wide and available to all users
-dnf_packages:
+rpm_packages:
   - htop              
 
-# Python packages to install via pip3
-# These packages are installed globally for Python 3
+# Python packages to install via pip
+# These packages are installed in the virtual environment
 python_packages:
   - pydantic
 
+# Extra commands to execute during container startup
+# These commands are executed after package installation as root user
+extra_commands:
+  - "echo 'Custom startup command executed'"
+  - "mkdir -p /tmp/custom"
+
 # NOTES:
 # - Package installation happens at container startup before SLURM services
-# - Failed package installations will be logged but won't prevent startup
-# - Packages are installed with timeout protection (5 minutes max)
+# - Extra commands are executed after package installation
+# - Failed package installations or failed extra commands will cause startup to
+#   fail
 # - Installation is idempotent - restarting containers is safe
 # - Large packages may increase container startup time

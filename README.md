@@ -63,7 +63,7 @@ synchronization while preventing ownership issues on the host.
 ### (Optional) Install Extra Packages on the Virtual Cluster
 
 Provide a file `packages.yml` with extra packages to be installed by `pip`
-and/or `dnf`, with a bind mount to the headnode:
+and/or `dnf`, with a bind mount to both headnode and worker nodes:
 
 ```yaml
 ...
@@ -75,21 +75,34 @@ and/or `dnf`, with a bind mount to the headnode:
 ```
 
 A `packages.yml.example` file is provided as a starting point.
-The file is structured into two main lists:
+The file is structured into three main lists:
 
-- `dnf_packages`: for system packages (e.g., `htop`, `git`, `vim`)
+- `rpm_packages`: for system packages (e.g., `htop`, `git`, `vim`)
 - `python_packages`: for Python libraries (e.g., `pydantic`, `pandas`, `requests`)
+- `extra_commands`: for arbitrary shell commands executed as root during startup
 
-Packages are persistent across container restarts and calls to the installation
-scripts are idempotent.
+Package installation and extra commands are handled directly in the shell 
+entrypoint script, making installation progress visible via `docker logs -f`. 
+Packages are persistent across container restarts and installation is 
+idempotent.
+
+**Caching**: RPM packages are cached in a shared volume (`rpm-cache`) to avoid
+re-downloading the same packages when starting multiple containers or
+restarting them. The first container downloads and caches packages; subsequent
+containers reuse the cached files.
+
+**Note**: The entrypoint only adds packages, never removes them. If you need to
+remove packages or make deeper changes, enter the container manually with
+`docker exec` and use `dnf remove` or `pip uninstall` as needed.
 
 Be mindful that:
 
 - installing large packages can increase the startup time of your containers.
 - if a package fails to install, the error will be logged, but it will not
   prevent the container from starting.
-- packages are installed at container startup, **before** core services (like
-  SLURM) are initialized.
+- if an extra command fails, it will cause the container startup to fail.
+- packages and extra commands are executed at container startup, **before** 
+  core services (like SLURM) are initialized.
 
 
 ### Pull up the virtual cluster
@@ -196,6 +209,7 @@ template. Remember to also edit the `NodeName` line in
   - to override the configuration, see [Configure SLURM](#configure-slurm)
 - **venv**: shared Python virtual environment
   - to install extra packages, see [(Optional) Install Extra Packages on the Virtual Cluster](#optional-install-extra-packages-on-the-virtual-cluster)
+- **rpm-cache**: shared DNF package cache to avoid re-downloading packages across containers
 
 ### MPI
 

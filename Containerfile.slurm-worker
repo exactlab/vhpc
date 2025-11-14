@@ -1,4 +1,4 @@
-ARG BASE_IMAGE=vhpc-base:latest
+ARG BASE_IMAGE=vhpc-base:${VERSION}
 FROM ${BASE_IMAGE}
 
 # Install additional runtime dependencies
@@ -36,43 +36,9 @@ EXPOSE 22
 # link python interpreter from shared venv, if it exists
 RUN if [ -f /opt/venv/bin/python ]; then ln -s /opt/venv/bin/python /usr/bin/python; fi
 
-RUN cat > /start.sh <<'EOF'
-#!/bin/bash
-set -e
-
-if [ -f /opt/venv/bin/python ]; then
-    echo "Using shared venv, installing only dnf extra packages"
-    /opt/venv/bin/python /opt/package-installer.py --no-pip
-else
-    echo "Creating a venv with 3.12 (additional packages will be installed in here, if any)"
-    python3.12 -m venv venv/
-    source venv/bin/activate
-    pip install pyyaml # requirement for package-installer.py
-    python /opt/package-installer.py
-fi
-
-echo "Synchronizing users from headnode..."
-if [ -f /user-sync/passwd ]; then
-    cp /user-sync/passwd /etc/passwd
-    cp /user-sync/group /etc/group
-    [ -f /user-sync/shadow ] && cp /user-sync/shadow /etc/shadow
-fi
-
-echo "Starting sshd..."
-/usr/sbin/sshd
-
-echo "Starting munged..."
-su -s /bin/bash munge -c "/usr/sbin/munged"
-
-echo "Testing munge..."
-munge -n | unmunge
-
-exec slurmd -D -f ${SLURM_CONF}
-EOF
-
 ENV SLURM_CONF=/etc/slurm/slurm.conf
 
-COPY package-installer.py /opt/package-installer.py
-RUN chmod +x /start.sh
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
 
-CMD ["/start.sh"]
+CMD ["/entrypoint.sh", "worker"]

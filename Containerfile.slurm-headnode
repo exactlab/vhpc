@@ -49,8 +49,7 @@ EXPOSE 22
 RUN python3.12 -m venv /opt/venv
 RUN ln -s /opt/venv/bin/python /usr/bin/python
 
-COPY headnode-entrypoint.sh /start.sh
-COPY package-installer.py /opt/package-installer.py
-RUN chmod +x /start.sh
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
 
-CMD ["/start.sh"]
+CMD ["/entrypoint.sh", "headnode"]
