@@ -2,7 +2,6 @@ name: Build and Push Docker Images
 
 on:
   push:
-    branches: [ main ]
     tags: [ 'v*' ]
   workflow_dispatch:
 
@@ -92,16 +91,16 @@ jobs:
 
       - name: Clean up old images
         run: |
-          # Delete all untagged images and keep only the latest tagged version
+          # Keep only the 5 most recent builds for each image
           for image in base headnode worker; do
             echo "Cleaning up old versions of $image..."
 
-            # Get all versions except latest and current SHA
+            # Get all versions sorted by creation date, skip the 5 most recent
             OLD_VERSIONS=$(gh api \
               -H "Accept: application/vnd.github+json" \
               -H "X-GitHub-Api-Version: 2022-11-28" \
               /orgs/exactlab/packages/container/vhpc-$image/versions \
-              --jq '.[] | select(.metadata.container.tags | length > 0) | select([.metadata.container.tags[] | select(. == "latest" or . == "${{ steps.meta.outputs.sha_short }}")] | length == 0) | .id')
+              --jq 'sort_by(.created_at) | reverse | .[5:] | .[].id')
 
             # Delete old versions
             for version_id in $OLD_VERSIONS; do
