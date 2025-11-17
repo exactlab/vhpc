@@ -242,7 +242,6 @@ template. Remember to also edit the `NodeName` line in
 
 ### Bind Mounts
 
-- `/sys/fs/cgroup:/sys/fs/cgroup:ro` - Required by cgroup support in SLURM
 - `./slurm-config:/var/slurm_config:ro` - Optional SLURM configuration override
   (commented by default)
 - `./ssh-keys:/ssh-keys` - SSH keys for inter-node communication
@@ -272,7 +271,6 @@ template. Remember to also edit the `NodeName` line in
 - **OpenMPI Version**: 4.1.1 with container-optimized configuration
 - **Authentication**: Munge
 - **Network**: Docker bridge network (`slurm-net`)
-- **Privileged Mode**: Required for cgroup access
 - **Image Sizes**: Base ~425MB (includes MariaDB client), Head/Worker ~446MB
   (87% reduction from source builds)
 - **Database**: MariaDB 10.9 with 64MB buffer pool for container optimization
