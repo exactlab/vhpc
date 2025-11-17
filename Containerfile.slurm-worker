@@ -1,4 +1,4 @@
-ARG BASE_IMAGE=vhpc-base:${VERSION}
+ARG BASE_IMAGE=vhpc-base:latest
 FROM ${BASE_IMAGE}
 
 # Install additional runtime dependencies
