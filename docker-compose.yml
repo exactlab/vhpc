@@ -37,7 +37,7 @@ services:
       args:
         - BASE_IMAGE=${REGISTRY}vhpc-base:${VERSION}
       cache_from:
-        - vhpc-base:latest
+        - vhpc-base:${VERSION}
     container_name: slurm-headnode0
     hostname: slurm-headnode
     privileged: true
@@ -83,7 +83,7 @@ services:
       args:
         - BASE_IMAGE=${REGISTRY}vhpc-base:${VERSION}
       cache_from:
-        - vhpc-base:latest
+        - vhpc-base:${VERSION}
     privileged: true
     volumes:
       - munge-key:/etc/munge:ro
