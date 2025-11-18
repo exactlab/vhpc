@@ -4,7 +4,6 @@
 services:
   slurm-db:
     image: mariadb:10.9
-    container_name: slurm-db
     hostname: slurm-db
     environment:
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-rootpass}
@@ -38,7 +37,6 @@ services:
         - BASE_IMAGE=${REGISTRY}vhpc-base:${VERSION}
       cache_from:
         - vhpc-base:${VERSION}
-    container_name: slurm-headnode0
     hostname: slurm-headnode
     depends_on:
       - slurm-db                         # Ensure database starts before headnode
@@ -104,7 +102,6 @@ services:
 
   slurm-worker1:
     <<: *slurm-worker-common
-    container_name: slurm-worker1
     hostname: slurm-worker1
     ports:
       - "127.0.0.1:2223:22"
@@ -113,7 +110,6 @@ services:
 
   slurm-worker2:
     <<: *slurm-worker-common
-    container_name: slurm-worker2
     hostname: slurm-worker2
     ports:
       - "127.0.0.1:2224:22"
