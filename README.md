@@ -58,6 +58,7 @@ images, so you can start the cluster immediately without any additional setup.
 **Custom Configuration (Optional)**: To override the default SLURM configuration:
 
 1. Uncomment the volume mount in `docker-compose.yml`:
+
    ```yaml
    # - ./slurm-config:/var/slurm_config:ro # Host-provided config override (mounted to staging area)
    ```
@@ -66,6 +67,7 @@ images, so you can start the cluster immediately without any additional setup.
 3. Restart the cluster: `docker-compose down && docker-compose up -d`
 
 **How it works**: The system uses a double mount strategy:
+
 - Default config is baked into images at `/var/slurm_config/`
 - Optional host override mounts to `/var/slurm_config/` (staging area)
 - Headnode entrypoint copies config from staging to `/etc/slurm/`
@@ -122,7 +124,6 @@ Be mindful that:
 - packages and extra commands are executed at container startup, **before**
   core services (like SLURM) are initialized.
 
-
 ### Pull up the virtual cluster
 
 At this point you can simply
@@ -134,12 +135,14 @@ docker compose up -d
 ### Accessing the Cluster
 
 **SSH Key Authentication (Recommended)**:
+
 - **Head Node**: `ssh -i ./ssh-keys/id_ed25519 -p 2222 root@localhost`
 - **Worker1**: `ssh -i ./ssh-keys/id_ed25519 -p 2223 root@localhost`
 - **Worker2**: `ssh -i ./ssh-keys/id_ed25519 -p 2224 root@localhost`
 - **Non-privileged User**: `ssh -i ./ssh-keys/id_ed25519 -p 2222 user@localhost`
 
 **Password Authentication (Fallback)**:
+
 - **Head Node SSH**: `ssh -p 2222 root@localhost` (password: `rootpass`)
 - **Worker1 SSH**: `ssh -p 2223 root@localhost` (password: `rootpass`)
 - **Worker2 SSH**: `ssh -p 2224 root@localhost` (password: `rootpass`)
@@ -152,7 +155,6 @@ production environments.
 
 In the example compose file, SSH is binded to the host localhost only.
 
-
 ## Building the images
 
 The images are available on the [GitHub Container Registry](https://github.com/exactlab/vhpc/pkgs/container/vhpc-base). You can also build
@@ -163,6 +165,7 @@ docker compose build
 ```
 
 ### Example SLURM Commands
+
 ```bash
 # Check cluster status
 sinfo
@@ -188,6 +191,7 @@ sacct -j 1 --format=JobID,JobName,Partition,Account,AllocCPUS,State,ExitCode
 ```
 
 ### Working with Shared Storage
+
 ```bash
 # Shared storage is mounted at /shared on all nodes
 # Create user directory for job files
@@ -201,6 +205,7 @@ chown user:user /shared/user
 ## Configuration
 
 ### Current Cluster Setup
+
 - **Database Node**: MariaDB 10.9 with optimized settings for containers
 - **Head Node**: 1 node running slurmctld and conditionally slurmdbd
 - **Worker Nodes**: 2 nodes (slurm-worker1, slurm-worker2)
@@ -213,7 +218,6 @@ chown user:user /shared/user
 You can add more slurm workers to the compose, using the existing ones as a
 template. Remember to also edit the `NodeName` line in
 `slurm-config/slurm.conf` accordingly.
-
 
 ## Technical Details
 
@@ -236,10 +240,8 @@ template. Remember to also edit the `NodeName` line in
 - **MPI Transport**: `OMPI_MCA_btl=tcp,self` (disables problematic fabric
   transports)
 
-
 ### Bind Mounts
 
-- `/sys/fs/cgroup:/sys/fs/cgroup:ro` - Required by cgroup support in SLURM
 - `./slurm-config:/var/slurm_config:ro` - Optional SLURM configuration override
   (commented by default)
 - `./ssh-keys:/ssh-keys` - SSH keys for inter-node communication
@@ -269,7 +271,6 @@ template. Remember to also edit the `NodeName` line in
 - **OpenMPI Version**: 4.1.1 with container-optimized configuration
 - **Authentication**: Munge
 - **Network**: Docker bridge network (`slurm-net`)
-- **Privileged Mode**: Required for cgroup access
 - **Image Sizes**: Base ~425MB (includes MariaDB client), Head/Worker ~446MB
   (87% reduction from source builds)
 - **Database**: MariaDB 10.9 with 64MB buffer pool for container optimization
@@ -277,6 +278,7 @@ template. Remember to also edit the `NodeName` line in
 ## Troubleshooting
 
 ### Job Accounting Issues
+
 - If `sacct` shows "Slurm accounting storage is disabled": Database connection
   failed during startup
 - Check database logs: `docker logs slurm-db`
@@ -286,22 +288,25 @@ template. Remember to also edit the `NodeName` line in
   -pslurmpass -e "SELECT 1;"`
 
 ### MPI Jobs Failing
+
 - Ensure MPI programs are in shared storage (`/shared`)
 - Use `module load mpi/openmpi-x86_64` before compilation
 - Submit jobs as non-root user (`user`)
 
 ### User Synchronization Issues
+
 - Check if `/user-sync/passwd` exists on head node
 - Restart worker containers if user changes don't propagate
 
-
 ### Graceful Degradation Behavior
+
 - **Database Available**: Full accounting enabled, `sacct` works normally
 - **Database Unavailable**: Cluster runs without accounting, `sacct` shows
   "disabled" message
 - **Database Recovery**: Restart headnode after database becomes available
 
 ### Job Output Location
+
 - Job output files are created where the job runs (usually on worker nodes)
 - Use shared storage paths for consistent output location
 
