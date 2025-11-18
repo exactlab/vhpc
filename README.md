@@ -141,6 +141,19 @@ docker compose up -d
 - **Worker2**: `ssh -i ./ssh-keys/id_ed25519 -p 2224 root@localhost`
 - **Non-privileged User**: `ssh -i ./ssh-keys/id_ed25519 -p 2222 user@localhost`
 
+**Warning**: Each image version generates its own SSH keys. When upgrading to a
+new image version, remove the old keys with `rm -r ssh-keys/` before starting
+the new infrastructure to avoid authentication failures.
+
+**Note for SSH Agent Users**: If you have multiple keys loaded in your SSH
+agent, SSH may exhaust the server's authentication attempts before trying the
+specified key file. If you encounter "Too many authentication failures", use
+the `-o IdentitiesOnly=yes` option to bypass agent keys:
+
+```bash
+ssh -i ./ssh-keys/id_ed25519 -o IdentitiesOnly=yes -p 2222 root@localhost
+```
+
 **Password Authentication (Fallback)**:
 
 - **Head Node SSH**: `ssh -p 2222 root@localhost` (password: `rootpass`)
