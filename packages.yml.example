@@ -31,7 +31,7 @@ extra_commands:
   - "mkdir -p /tmp/custom"
 
 # NOTES:
-# - Package installation happens at container startup before SLURM services
+# - Package installation happens at container startup before Slurm services
 # - Extra commands are executed after package installation
 # - Failed package installations or failed extra commands will cause startup to
 #   fail

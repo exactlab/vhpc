@@ -1,7 +1,7 @@
-# vHPC: a Virtual HPC Cluster with SLURM and MPI
+# vHPC: a Virtual HPC Cluster with Slurm and MPI
 
 A Docker-based virtualization of a High Performance Computing (HPC) system
-running SLURM workload manager with OpenMPI support and optional full job
+running Slurm workload manager with OpenMPI support and optional full job
 accounting on Rocky Linux 9. This project creates a lean, production-ready
 multi-container environment.
 
@@ -23,11 +23,11 @@ engineering.
 - [Usage](#usage)
   - [Quick start](#quick-start)
   - [Accessing the Cluster](#accessing-the-cluster)
-  - [Example SLURM Commands](#example-slurm-commands)
+  - [Example Slurm Commands](#example-slurm-commands)
   - [Working with Shared Storage](#working-with-shared-storage)
 - [Configuration](#configuration)
   - [(Optional) Install Extra Packages](#optional-install-extra-packages-on-the-virtual-cluster)
-  - [(Optional) Custom SLURM Configuration](#optional-custom-slurm-configuration)
+  - [(Optional) Custom Slurm Configuration](#optional-custom-slurm-configuration)
   - [Adding More Workers](#adding-more-workers)
 - [Building the images](#building-the-images)
 - [Technical Details](#technical-details)
@@ -45,7 +45,7 @@ engineering.
   execution
 - **User Management**: User synchronization from head node to workers via
   mounted home volume
-- **Shared Configuration**: All SLURM configs shared via mounted volume
+- **Shared Configuration**: All Slurm configs shared via mounted volume
 - **Full Job Accounting (Optional)**: Complete `sacct` functionality with
   MariaDB backend. You can opt not to start the database container and the
   system will still work, just without accounting
@@ -115,7 +115,7 @@ production environments.
 In the example compose file, SSH is bound to the host's localhost only,
 preventing remote access from different hosts.
 
-### Example SLURM Commands
+### Example Slurm Commands
 
 ```bash
 # Check cluster status
@@ -198,7 +198,7 @@ Be mindful that:
 - if any installation fails, it will cause the container startup to fail
 - if an extra command fails, it will cause the container startup to fail
 - packages and extra commands are executed at container startup, **before**
-  core services (like SLURM) are initialized
+  core services (like Slurm) are initialized
 
 **Caching**: RPM package cache is persisted and shared as a volume
 (`rpm-cache`) across the cluster. This avoids re-downloading the same packages
@@ -211,13 +211,13 @@ package installation operations. The lock file (`/var/cache/dnf/.container_lock`
 ensures only one container can run DNF operations at a time. The system includes
 stale lock detection and automatic cleanup for containers that exit unexpectedly.
 
-### (Optional) Custom SLURM Configuration
+### (Optional) Custom Slurm Configuration
 
-**Default Configuration**: The cluster comes with a pre-configured SLURM setup
+**Default Configuration**: The cluster comes with a pre-configured Slurm setup
 that works out of the box. The default configuration is baked into the Docker
 images, so you can start the cluster immediately without any additional setup.
 
-**Custom Configuration (Optional)**: To override the default SLURM
+**Custom Configuration (Optional)**: To override the default Slurm
 configuration:
 
 1. Uncomment the volume mount in `docker-compose.yml`:
@@ -261,11 +261,11 @@ With the compose file included in this project you get:
   synchronization, and optionally runs slurmdbd
 - **Worker Nodes**: Two by default. They run slurmd daemon, execute submitted
   jobs, and sync users from head node
-- **Database Node (Optional)**: MariaDB 10.9 for SLURM job accounting
+- **Database Node (Optional)**: MariaDB 10.9 for Slurm job accounting
 - **MPI Support**: OpenMPI 4.1.1 with container-optimized transport
   configuration
 - **Shared Storage**: Persistent volumes for job data, user sync and home
-  directories, and SLURM configuration
+  directories, and Slurm configuration
 
 
 ### Volumes
@@ -274,8 +274,8 @@ With the compose file included in this project you get:
 - **shared-storage**: Persistent storage for job files and MPI binaries
 - **user-sync**: User account synchronization from head node to workers
 - **slurm-db-data**: MariaDB persistent storage for job accounting
-- **slurm-config**: shared SLURM configuration files to override the
-  configuration, see [Custom SLURM
+- **slurm-config**: shared Slurm configuration files to override the
+  configuration, see [Custom Slurm
   Configuration](#optional-custom-slurm-configuration)
 - **venv**: shared Python virtual environment
   - to install extra packages, see [(Optional) Install Extra Packages on the
@@ -307,7 +307,7 @@ production!
 ### Software Versions
 
 - **Base OS**: Rocky Linux 9
-- **SLURM Version**: 22.05.9 (from EPEL packages)
+- **Slurm Version**: 22.05.9 (from EPEL packages)
 - **OpenMPI Version**: 4.1.1 with container-optimized configuration
 - **Database**: MariaDB 10.9 with 64MB buffer pool for container optimization
 

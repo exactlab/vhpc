@@ -38,7 +38,7 @@ RUN cat << EOF > /etc/ssh/sshd_config.d/99.PasswordAuthentication.conf
 PasswordAuthentication yes
 EOF
 
-# Copy default SLURM configuration to staging area
+# Copy default Slurm configuration to staging area
 # This allows the default config to be available even when host overrides are not mounted
 COPY slurm-config/ /var/slurm_config/
 

@@ -7,7 +7,7 @@ services:
     hostname: slurm-db
     environment:
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-rootpass}
-      MYSQL_DATABASE: ${MYSQL_DATABASE:-slurm_acct_db}      # Database for SLURM accounting
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-slurm_acct_db}      # Database for Slurm accounting
       MYSQL_USER: ${MYSQL_USER:-slurm}                  # User for slurmdbd connections
       MYSQL_PASSWORD: ${MYSQL_PASSWORD:-slurmpass}
     volumes:
@@ -44,14 +44,14 @@ services:
       - "127.0.0.1:2222:22"
     volumes:
       - munge-key:/etc/munge                # Shared Munge authentication key
-      # Optional: Uncomment to override default SLURM configuration
+      # Optional: Uncomment to override default Slurm configuration
       # - ./slurm-config:/var/slurm_config:ro # Host-provided config override (mounted to staging area)
       # Double mount strategy:
       # 1. Host config (if provided) mounts to /var/slurm_config (staging area)
       # 2. slurm-config volume mounts to /etc/slurm (final destination)
       # 3. Entrypoint copies from /var/slurm_config to /etc/slurm, then syncs via volume to workers
       # This allows: a) defaults baked into image, b) optional host override, c) cluster-wide sync
-      - slurm-config:/etc/slurm             # Shared SLURM configuration volume
+      - slurm-config:/etc/slurm             # Shared Slurm configuration volume
       - shared-storage:/shared              # Shared storage for job data and MPI binaries
       - user-sync:/user-sync                # User account synchronization
       - ./ssh-keys:/ssh-keys                # Project-local SSH keys for authentication
@@ -82,7 +82,7 @@ services:
         - vhpc-base:${VERSION}
     volumes:
       - munge-key:/etc/munge:ro
-      - slurm-config:/etc/slurm # Shared SLURM configuration volume
+      - slurm-config:/etc/slurm # Shared Slurm configuration volume
       - shared-storage:/shared
       - user-sync:/user-sync:ro
       - ./ssh-keys:/ssh-keys                # Project-local SSH keys for authentication
