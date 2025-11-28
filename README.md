@@ -88,7 +88,7 @@ ssh -p 2222 user@localhost  # password: password (recommended for job submission
 Load your public key into the headnode:
 
 ```bash
-cat ~/.ssh/id_rsa.pub | docker compose exec slurm-headnode load-ssh-pubkey
+docker compose exec -T slurm-headnode load-ssh-pubkey < ~/.ssh/id_ed25519.pub
 ```
 
 Then connect:

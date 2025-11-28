@@ -121,11 +121,10 @@ setup_ssh() {
 # Load a public key from stdin to authorized_keys for both root and user.
 # Keys must be provided via stdin because the container cannot access host
 # paths directly.
-# Usage: cat ~/.ssh/id_rsa.pub | docker compose exec slurm-headnode load-ssh-pubkey
 load_ssh_pubkey() {
     if [ -t 0 ]; then
         echo "Error: No public key provided on stdin" >&2
-        echo "Usage: cat ~/.ssh/id_rsa.pub | docker compose exec slurm-headnode load-ssh-pubkey" >&2
+        echo "Usage: docker compose exec -T slurm-headnode load-ssh-pubkey < ~/.ssh/id_ed25519.pub" >&2
         exit 1
     fi
 
