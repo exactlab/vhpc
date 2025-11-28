@@ -118,6 +118,46 @@ setup_ssh() {
     /usr/sbin/sshd
 }
 
+# Load a public key from stdin to authorized_keys for both root and user.
+# Keys must be provided via stdin because the container cannot access host
+# paths directly.
+# Usage: cat ~/.ssh/id_rsa.pub | docker compose exec slurm-headnode load-ssh-pubkey
+load_ssh_pubkey() {
+    if [ -t 0 ]; then
+        echo "Error: No public key provided on stdin" >&2
+        echo "Usage: cat ~/.ssh/id_rsa.pub | docker compose exec slurm-headnode load-ssh-pubkey" >&2
+        exit 1
+    fi
+
+    PUBKEY=$(cat)
+
+    if [ -z "$PUBKEY" ]; then
+        echo "Error: Empty public key provided" >&2
+        exit 1
+    fi
+
+    echo "Adding public key to root authorized_keys..."
+    mkdir -p /root/.ssh
+    chmod 700 /root/.ssh
+    echo "$PUBKEY" >> /root/.ssh/authorized_keys
+    chmod 600 /root/.ssh/authorized_keys
+
+    echo "Adding public key to user authorized_keys..."
+    mkdir -p /home/user/.ssh
+    chmod 700 /home/user/.ssh
+    echo "$PUBKEY" >> /home/user/.ssh/authorized_keys
+    chmod 600 /home/user/.ssh/authorized_keys
+    chown -R user:user /home/user/.ssh
+
+    echo "Public key successfully added to both root and user accounts"
+}
+
+# Output the pre-generated private key to stdout for backwards compatibility.
+# Usage: docker compose exec slurm-headnode get-ssh-privkey > id_ed25519
+get_ssh_privkey() {
+    cat /opt/ssh-keys/id_ed25519
+}
+
 setup_munge_permissions() {
     echo "Fixing permissions..."
     chown -R munge:munge /var/log/munge /var/run/munge /etc/munge
@@ -221,8 +261,14 @@ case "${1:-headnode}" in
     worker)
         worker_startup
         ;;
+    load_ssh_pubkey)
+        load_ssh_pubkey
+        ;;
+    get_ssh_privkey)
+        get_ssh_privkey
+        ;;
     *)
-        echo "Usage: $0 [headnode|worker]"
+        echo "Usage: $0 [headnode|worker|load_ssh_pubkey|get_ssh_privkey]"
         exit 1
         ;;
 esac
