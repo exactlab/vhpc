@@ -114,11 +114,6 @@ execute_extra_commands() {
 }
 
 setup_ssh() {
-    echo "Copying SSH keys to shared directory..."
-    cp /opt/ssh-keys/* /ssh-keys/ 2>/dev/null || true
-    chmod 644 /ssh-keys/id_ed25519.pub 2>/dev/null || true
-    chmod 644 /ssh-keys/id_ed25519 2>/dev/null || true
-
     echo "Starting sshd..."
     /usr/sbin/sshd
 }
