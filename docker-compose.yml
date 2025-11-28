@@ -103,16 +103,20 @@ services:
   slurm-worker1:
     <<: *slurm-worker-common
     hostname: slurm-worker1
-    ports:
-      - "127.0.0.1:2223:22"
+    # SSH not exposed by default (access via docker exec)
+    # Uncomment to expose SSH if needed:
+    # ports:
+    #   - "127.0.0.1:2223:22"
     deploy:
       replicas: 1
 
   slurm-worker2:
     <<: *slurm-worker-common
     hostname: slurm-worker2
-    ports:
-      - "127.0.0.1:2224:22"
+    # SSH not exposed by default (access via docker exec)
+    # Uncomment to expose SSH if needed:
+    # ports:
+    #   - "127.0.0.1:2224:22"
     deploy:
       replicas: 1
 
