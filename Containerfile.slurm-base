@@ -55,9 +55,6 @@ RUN mkdir -p /root/.ssh /home/user/.ssh && \
     chmod 600 /root/.ssh/authorized_keys /home/user/.ssh/authorized_keys && \
     chown -R user:user /home/user/.ssh
 
-# Create mount point for sharing keys with host
-RUN mkdir -p /ssh-keys
-
 # Configure SSH daemon to support both password and key authentication
 RUN mkdir -p /etc/ssh/sshd_config.d && \
     echo 'PubkeyAuthentication yes' > /etc/ssh/sshd_config.d/97.PubkeyAuthentication.conf && \

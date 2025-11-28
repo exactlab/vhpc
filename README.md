@@ -71,25 +71,34 @@ The virtual cluster will start up in its default configuration:
 
 ### Accessing the Cluster
 
-Although it is of course possible to use `docker exec` to access the
-containers, we provide SSH access to emulate common cluster setups.
+**SSH Access to Headnode**:
 
-**SSH Key Authentication (Recommended)**:
+SSH access is available to the headnode on port 2222. You can access it using
+password authentication or by loading your own SSH key.
 
-Upon container startup, you'll see a directory `ssh-keys/` appearing. Those
-keys are enabled for both the root and non-privileged user.
+**Password Authentication**:
 
-You can reach the different nodes via
+```bash
+ssh -p 2222 root@localhost  # password: rootpass
+ssh -p 2222 user@localhost  # password: password (recommended for job submission)
+```
 
-- **Head Node**: `ssh -i ./ssh-keys/id_ed25519 -p 2222 root@localhost`
-- **Worker1**: `ssh -i ./ssh-keys/id_ed25519 -p 2223 root@localhost`
-- **Worker2**: `ssh -i ./ssh-keys/id_ed25519 -p 2224 root@localhost`
+**Using Your Own SSH Key**:
 
-Swap `root` with `user` to access as non privileged user.
+Load your public key into the headnode:
 
-**Warning**: Each image version generates its own SSH keys. When upgrading to a
-new image version, remove the old keys with `rm -r ssh-keys/` before starting
-the new infrastructure to avoid authentication failures.
+```bash
+cat ~/.ssh/id_rsa.pub | docker compose exec slurm-headnode load-ssh-pubkey
+```
+
+Then connect:
+
+```bash
+ssh -p 2222 root@localhost
+```
+
+Note: Keys must be provided via stdin because the container cannot access host
+paths directly.
 
 **Note for SSH Agent Users**: If you have multiple keys loaded in your SSH
 agent, SSH may exhaust the server's allowed authentication attempts before
@@ -97,16 +106,33 @@ trying the specified key file. If you encounter "Too many authentication
 failures", use the `-o IdentitiesOnly=yes` option to bypass agent keys:
 
 ```bash
-ssh -i ./ssh-keys/id_ed25519 -o IdentitiesOnly=yes -p 2222 root@localhost
+ssh -i ~/.ssh/id_rsa -o IdentitiesOnly=yes -p 2222 root@localhost
 ```
 
-**Password Authentication (Fallback)**:
+**Using Pre-generated Keys**:
 
-- **Head Node SSH**: `ssh -p 2222 root@localhost` (password: `rootpass`)
-- **Worker1 SSH**: `ssh -p 2223 root@localhost` (password: `rootpass`)
-- **Worker2 SSH**: `ssh -p 2224 root@localhost` (password: `rootpass`)
-- **Non-privileged User**: `user` (password: `password`) - recommended for job
-  submission
+For convenience and CI environments, you can extract the pre-generated private
+key embedded in the image:
+
+```bash
+docker compose exec slurm-headnode get-ssh-privkey > id_ed25519
+chmod 600 id_ed25519
+ssh -i id_ed25519 -p 2222 root@localhost
+```
+
+**Accessing Workers**:
+
+Workers do not expose SSH ports by default, as this reflects typical HPC
+cluster configurations where SSH access is confined to the headnode. Access
+workers using:
+
+```bash
+docker exec -it slurm-worker1 bash
+docker exec -it slurm-worker2 bash
+```
+
+If you need SSH access to workers for specific use cases, you can uncomment the
+port mappings in the workers' sections of `docker-compose.yml`.
 
 **⚠️ Security Note**: SSH keys are automatically generated during container
 build for testing and educational purposes only. Do not use these keys in

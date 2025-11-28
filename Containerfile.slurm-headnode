@@ -53,4 +53,13 @@ RUN ln -s /opt/venv/bin/python /usr/bin/python
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
+# Install SSH key management scripts
+RUN echo '#!/bin/bash' > /usr/local/bin/load-ssh-pubkey && \
+    echo 'exec /entrypoint.sh load_ssh_pubkey "$@"' >> /usr/local/bin/load-ssh-pubkey && \
+    chmod +x /usr/local/bin/load-ssh-pubkey
+
+RUN echo '#!/bin/bash' > /usr/local/bin/get-ssh-privkey && \
+    echo 'exec /entrypoint.sh get_ssh_privkey "$@"' >> /usr/local/bin/get-ssh-privkey && \
+    chmod +x /usr/local/bin/get-ssh-privkey
+
 CMD ["/entrypoint.sh", "headnode"]
