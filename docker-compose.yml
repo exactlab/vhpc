@@ -54,7 +54,6 @@ services:
       - slurm-config:/etc/slurm             # Shared Slurm configuration volume
       - shared-storage:/shared              # Shared storage for job data and MPI binaries
       - user-sync:/user-sync                # User account synchronization
-      - ./ssh-keys:/ssh-keys                # Project-local SSH keys for authentication
       # Optional: Mount packages.yml for runtime package installation
       - venv:/opt/venv
       - rpm-cache:/var/cache/dnf
@@ -85,7 +84,6 @@ services:
       - slurm-config:/etc/slurm # Shared Slurm configuration volume
       - shared-storage:/shared
       - user-sync:/user-sync:ro
-      - ./ssh-keys:/ssh-keys                # Project-local SSH keys for authentication
       - venv:/opt/venv:ro
       - rpm-cache:/var/cache/dnf
       - ./packages.yml:/packages.yml:ro
